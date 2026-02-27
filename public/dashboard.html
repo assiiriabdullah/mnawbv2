@@ -1,0 +1,635 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>لوحة التحكم - نظام إدارة الموظفين</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: { arabic: ['Tajawal', 'Arial', 'sans-serif'] }
+                }
+            }
+        }
+    </script>
+    <link rel="stylesheet" href="/css/style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@300;400;500;700;800&display=swap"
+        rel="stylesheet">
+</head>
+
+<body class="min-h-screen bg-gray-50 font-arabic">
+
+    <!-- Top Navbar -->
+    <nav class="bg-gradient-to-l from-emerald-600 to-teal-700 text-white shadow-lg sticky top-0 z-50">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 py-3 flex items-center justify-between">
+            <div class="flex items-center gap-3">
+                <button id="menuToggle" class="lg:hidden p-2 hover:bg-white/10 rounded-lg transition">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M4 6h16M4 12h16M4 18h16" />
+                    </svg>
+                </button>
+                <div class="flex items-center gap-2">
+                    <div class="w-9 h-9 bg-white/20 rounded-xl flex items-center justify-center">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z" />
+                        </svg>
+                    </div>
+                    <h1 class="text-lg font-bold hidden sm:block">نظام إدارة الموظفين</h1>
+                </div>
+            </div>
+            <div class="flex items-center gap-4">
+                <span id="userName" class="text-sm bg-white/10 px-3 py-1.5 rounded-lg"></span>
+                <button id="logoutBtn"
+                    class="text-sm bg-white/20 hover:bg-white/30 px-3 py-1.5 rounded-lg transition flex items-center gap-1">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+                    </svg>
+                    خروج
+                </button>
+            </div>
+        </div>
+    </nav>
+
+    <div class="flex">
+        <!-- Sidebar -->
+        <aside id="sidebar"
+            class="fixed lg:sticky top-[60px] right-0 h-[calc(100vh-60px)] w-64 bg-white border-l border-gray-200 shadow-sm transform translate-x-full lg:translate-x-0 transition-transform z-40 overflow-y-auto">
+            <nav class="p-4 space-y-1">
+                <a href="#" data-section="stats"
+                    class="nav-link flex items-center gap-3 px-4 py-3 rounded-xl text-gray-600 hover:bg-emerald-50 hover:text-emerald-700 transition font-medium">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
+                    </svg>
+                    الرئيسية
+                </a>
+
+                <a href="#" data-section="employees"
+                    class="nav-link flex items-center gap-3 px-4 py-3 rounded-xl text-gray-600 hover:bg-emerald-50 hover:text-emerald-700 transition font-medium">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197m13.5-9a2.5 2.5 0 11-5 0 2.5 2.5 0 015 0z" />
+                    </svg>
+                    الموظفين
+                </a>
+                <a href="#" data-section="leaves"
+                    class="nav-link flex items-center gap-3 px-4 py-3 rounded-xl text-gray-600 hover:bg-emerald-50 hover:text-emerald-700 transition font-medium">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                    </svg>
+                    الإجازات
+                    <span id="pendingBadge"
+                        class="hidden mr-auto bg-red-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center font-bold"></span>
+                </a>
+                <a href="#" data-section="courses"
+                    class="nav-link flex items-center gap-3 px-4 py-3 rounded-xl text-gray-600 hover:bg-emerald-50 hover:text-emerald-700 transition font-medium">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
+                    </svg>
+                    الدورات
+                </a>
+                <a href="#" data-section="mandates"
+                    class="nav-link flex items-center gap-3 px-4 py-3 rounded-xl text-gray-600 hover:bg-emerald-50 hover:text-emerald-700 transition font-medium">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+                    </svg>
+                    الانتدابات
+                </a>
+                <hr class="my-2 border-gray-100">
+                <a href="#" data-section="activity"
+                    class="nav-link flex items-center gap-3 px-4 py-3 rounded-xl text-gray-600 hover:bg-emerald-50 hover:text-emerald-700 transition font-medium">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01m-.01 4h.01" />
+                    </svg>
+                    سجل النشاطات
+                </a>
+            </nav>
+        </aside>
+
+        <!-- Sidebar overlay for mobile -->
+        <div id="sidebarOverlay" class="fixed inset-0 bg-black/30 z-30 hidden lg:hidden"></div>
+
+        <!-- Main Content -->
+        <main class="flex-1 p-4 sm:p-6 lg:p-8 max-w-6xl mx-auto w-full">
+
+            <!-- ========== STATS SECTION (with Department Tabs) ========== -->
+            <section id="section-stats" class="content-section hidden">
+                <div class="mb-8">
+                    <h2 class="text-2xl font-bold text-gray-800 mb-5">الصفحة الرئيسية</h2>
+
+                    <!-- Department Tabs -->
+                    <div class="mb-6">
+                        <div id="deptTabs"
+                            class="flex flex-wrap gap-2 bg-white p-2 rounded-2xl shadow-sm border border-gray-100">
+                            <button data-dept-tab="overview"
+                                class="dept-tab active-dept-tab px-5 py-2.5 rounded-xl text-sm font-bold transition-all">
+                                نظرة عامة
+                            </button>
+                            <button data-dept-tab="shifts"
+                                class="dept-tab px-5 py-2.5 rounded-xl text-sm font-bold transition-all">
+                                إدارة المناوبات
+                            </button>
+                            <button data-dept-tab="hr"
+                                class="dept-tab px-5 py-2.5 rounded-xl text-sm font-bold transition-all">
+                                الموارد البشرية
+                            </button>
+                            <button data-dept-tab="operations"
+                                class="dept-tab px-5 py-2.5 rounded-xl text-sm font-bold transition-all">
+                                العمليات
+                            </button>
+                            <button data-dept-tab="workforce"
+                                class="dept-tab px-5 py-2.5 rounded-xl text-sm font-bold transition-all">
+                                القوى العاملة
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Overview Tab Content -->
+                    <div id="tabContent-overview" class="dept-tab-content">
+                        <!-- Stats Cards -->
+                        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+                            <div
+                                class="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 flex items-center gap-4">
+                                <div
+                                    class="w-12 h-12 bg-blue-50 rounded-xl flex items-center justify-center text-blue-600">
+                                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                            d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z" />
+                                    </svg>
+                                </div>
+                                <div>
+                                    <p class="text-sm text-gray-500 font-medium">إجمالي الموظفين</p>
+                                    <h3 id="statTotalEmployees" class="text-2xl font-bold text-gray-800">-</h3>
+                                </div>
+                            </div>
+                            <div
+                                class="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 flex items-center gap-4">
+                                <div
+                                    class="w-12 h-12 bg-yellow-50 rounded-xl flex items-center justify-center text-yellow-600">
+                                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                            d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                    </svg>
+                                </div>
+                                <div>
+                                    <p class="text-sm text-gray-500 font-medium">إجازات معلقة</p>
+                                    <h3 id="statPendingLeaves" class="text-2xl font-bold text-gray-800">-</h3>
+                                </div>
+                            </div>
+                            <div
+                                class="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 flex items-center gap-4">
+                                <div
+                                    class="w-12 h-12 bg-emerald-50 rounded-xl flex items-center justify-center text-emerald-600">
+                                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                            d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
+                                    </svg>
+                                </div>
+                                <div>
+                                    <p class="text-sm text-gray-500 font-medium">الدورات التدريبية</p>
+                                    <h3 id="statTotalCourses" class="text-2xl font-bold text-gray-800">-</h3>
+                                </div>
+                            </div>
+                            <div
+                                class="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 flex items-center gap-4">
+                                <div
+                                    class="w-12 h-12 bg-teal-50 rounded-xl flex items-center justify-center text-teal-600">
+                                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                            d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                            d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+                                    </svg>
+                                </div>
+                                <div>
+                                    <p class="text-sm text-gray-500 font-medium">الانتدابات</p>
+                                    <h3 id="statTotalMandates" class="text-2xl font-bold text-gray-800">-</h3>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Department Overview Cards -->
+                        <div id="departmentCards" class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8"></div>
+
+                        <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                            <!-- Employees by Shift -->
+                            <div class="bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
+                                <h3 class="font-bold text-gray-800 mb-4">توزيع الموظفين حسب المناوبة</h3>
+                                <div id="shiftStats" class="space-y-4"></div>
+                            </div>
+
+                            <!-- Recent Leaves -->
+                            <div class="bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
+                                <h3 class="font-bold text-gray-800 mb-4">آخر طلبات الإجازة</h3>
+                                <div id="recentLeaves" class="space-y-3"></div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Department Tab Content (dynamic) -->
+                    <div id="tabContent-dept" class="dept-tab-content hidden"></div>
+
+                </div>
+            </section>
+
+            <!-- ========== ACTIVITY LOG SECTION ========== -->
+            <section id="section-activity" class="content-section hidden">
+                <h2 class="text-2xl font-bold text-gray-800 mb-6">سجل نشاطات النظام</h2>
+                <div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-sm">
+                            <thead class="bg-gray-50 border-b border-gray-100">
+                                <tr>
+                                    <th class="px-4 py-3 text-right font-medium text-gray-500">الوقت</th>
+                                    <th class="px-4 py-3 text-right font-medium text-gray-500">المستخدم</th>
+                                    <th class="px-4 py-3 text-right font-medium text-gray-500">النوع</th>
+                                    <th class="px-4 py-3 text-right font-medium text-gray-500">الإجراء</th>
+                                    <th class="px-4 py-3 text-right font-medium text-gray-500">الهدف</th>
+                                    <th class="px-4 py-3 text-right font-medium text-gray-500">التفاصيل</th>
+                                </tr>
+                            </thead>
+                            <tbody id="activityTable" class="divide-y divide-gray-50"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </section>
+
+            <!-- ========== EMPLOYEES SECTION ========== -->
+            <section id="section-employees" class="content-section hidden">
+                <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-6">
+                    <h2 class="text-2xl font-bold text-gray-800">إدارة الموظفين</h2>
+                    <div class="flex flex-col sm:flex-row gap-3 w-full sm:w-auto">
+                        <select id="employeeDeptFilter"
+                            class="bg-white border border-gray-200 rounded-xl px-3 py-2 text-sm focus:ring-2 focus:ring-emerald-500 outline-none">
+                            <option value="">كل الإدارات</option>
+                            <option value="shifts">إدارة المناوبات</option>
+                            <option value="hr">إدارة الموارد البشرية</option>
+                            <option value="operations">إدارة العمليات</option>
+                            <option value="workforce">إدارة القوى العاملة</option>
+                        </select>
+                        <div class="relative flex-1 sm:w-64">
+                            <div class="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
+                                <svg class="w-5 h-5 text-gray-400" fill="none" stroke="currentColor"
+                                    viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                        d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+                                </svg>
+                            </div>
+                            <input type="text" id="employeeSearchInput"
+                                class="block w-full p-2.5 pr-10 text-sm text-gray-900 border border-gray-200 rounded-xl bg-white focus:ring-2 focus:ring-emerald-500 outline-none"
+                                placeholder="بحث باسم الموظف...">
+                        </div>
+                        <button id="addEmployeeBtn"
+                            class="bg-gradient-to-l from-emerald-500 to-teal-600 text-white px-5 py-2.5 rounded-xl hover:from-emerald-600 hover:to-teal-700 transition shadow-md shadow-emerald-100 flex items-center justify-center gap-2 text-sm font-medium whitespace-nowrap">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+                            </svg>
+                            إضافة موظف
+                        </button>
+                    </div>
+                </div>
+                <div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-sm">
+                            <thead class="bg-gray-50 border-b border-gray-100">
+                                <tr>
+                                    <th class="px-4 py-3 text-right font-medium text-gray-500">#</th>
+                                    <th class="px-4 py-3 text-right font-medium text-gray-500">الاسم</th>
+                                    <th class="px-4 py-3 text-right font-medium text-gray-500">اسم المستخدم</th>
+                                    <th class="px-4 py-3 text-right font-medium text-gray-500">الدور</th>
+                                    <th class="px-4 py-3 text-right font-medium text-gray-500">الإدارة</th>
+                                    <th class="px-4 py-3 text-right font-medium text-gray-500">المناوبة</th>
+                                    <th class="px-4 py-3 text-right font-medium text-gray-500">تاريخ التعيين</th>
+                                    <th class="px-4 py-3 text-right font-medium text-gray-500">إجراءات</th>
+                                </tr>
+                            </thead>
+                            <tbody id="employeesTable" class="divide-y divide-gray-50"></tbody>
+                        </table>
+                    </div>
+                    <div id="employeesEmpty" class="hidden p-8 text-center text-gray-400">لا يوجد موظفين بعد</div>
+                </div>
+            </section>
+
+            <!-- ========== LEAVES SECTION ========== -->
+            <section id="section-leaves" class="content-section hidden">
+                <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-6">
+                    <h2 class="text-2xl font-bold text-gray-800">إدارة الإجازات</h2>
+                    <div class="flex gap-2 flex-wrap">
+                        <select id="leavesDeptFilter"
+                            class="bg-white border border-gray-200 rounded-xl px-3 py-2 text-sm focus:ring-2 focus:ring-emerald-500 outline-none">
+                            <option value="">كل الإدارات</option>
+                            <option value="shifts">المناوبات</option>
+                            <option value="hr">الموارد البشرية</option>
+                            <option value="operations">العمليات</option>
+                            <option value="workforce">القوى العاملة</option>
+                        </select>
+                        <select id="leavesShiftFilter"
+                            class="bg-white border border-gray-200 rounded-xl px-3 py-2 text-sm focus:ring-2 focus:ring-emerald-500 outline-none">
+                            <option value="">كل المناوبات</option>
+                            <option value="أ">مناوبة أ</option>
+                            <option value="ب">مناوبة ب</option>
+                            <option value="ج">مناوبة ج</option>
+                            <option value="د">مناوبة د</option>
+                            <option value="مساندة_صباحية">مساندة صباحية</option>
+                            <option value="مساندة_مسائية">مساندة مسائية</option>
+                        </select>
+                        <select id="leavesStatusFilter"
+                            class="bg-white border border-gray-200 rounded-xl px-3 py-2 text-sm focus:ring-2 focus:ring-emerald-500 outline-none">
+                            <option value="">كل الحالات</option>
+                            <option value="pending">قيد الانتظار</option>
+                            <option value="approved">معتمدة</option>
+                            <option value="rejected">مرفوضة</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-sm">
+                            <thead class="bg-gray-50 border-b border-gray-100">
+                                <tr>
+                                    <th class="px-4 py-3 text-right font-medium text-gray-500">الموظف</th>
+                                    <th class="px-4 py-3 text-right font-medium text-gray-500">الدور</th>
+                                    <th class="px-4 py-3 text-right font-medium text-gray-500">الإدارة</th>
+                                    <th class="px-4 py-3 text-right font-medium text-gray-500">المناوبة</th>
+                                    <th class="px-4 py-3 text-right font-medium text-gray-500">من</th>
+                                    <th class="px-4 py-3 text-right font-medium text-gray-500">إلى</th>
+                                    <th class="px-4 py-3 text-right font-medium text-gray-500">الحالة</th>
+                                    <th class="px-4 py-3 text-right font-medium text-gray-500">إجراءات</th>
+                                </tr>
+                            </thead>
+                            <tbody id="leavesTable" class="divide-y divide-gray-50"></tbody>
+                        </table>
+                    </div>
+                    <div id="leavesEmpty" class="hidden p-8 text-center text-gray-400">لا يوجد طلبات إجازة</div>
+                </div>
+            </section>
+
+            <!-- ========== COURSES SECTION ========== -->
+            <section id="section-courses" class="content-section hidden">
+                <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-6">
+                    <h2 class="text-2xl font-bold text-gray-800">إدارة الدورات</h2>
+                    <button id="addCourseBtn"
+                        class="bg-gradient-to-l from-emerald-500 to-teal-600 text-white px-5 py-2.5 rounded-xl hover:from-emerald-600 hover:to-teal-700 transition shadow-md shadow-emerald-100 flex items-center gap-2 text-sm font-medium">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+                        </svg>
+                        إسناد دورة
+                    </button>
+                </div>
+                <div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-sm">
+                            <thead class="bg-gray-50 border-b border-gray-100">
+                                <tr>
+                                    <th class="px-4 py-3 text-right font-medium text-gray-500">اسم الدورة</th>
+                                    <th class="px-4 py-3 text-right font-medium text-gray-500">المكان</th>
+                                    <th class="px-4 py-3 text-right font-medium text-gray-500">التاريخ</th>
+                                    <th class="px-4 py-3 text-right font-medium text-gray-500">الموظف</th>
+                                    <th class="px-4 py-3 text-right font-medium text-gray-500">إجراءات</th>
+                                </tr>
+                            </thead>
+                            <tbody id="coursesTable" class="divide-y divide-gray-50"></tbody>
+                        </table>
+                    </div>
+                    <div id="coursesEmpty" class="hidden p-8 text-center text-gray-400">لا يوجد دورات</div>
+                </div>
+            </section>
+
+            <!-- ========== MANDATES SECTION ========== -->
+            <section id="section-mandates" class="content-section hidden">
+                <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-6">
+                    <h2 class="text-2xl font-bold text-gray-800">إدارة الانتدابات</h2>
+                    <button id="addMandateBtn"
+                        class="bg-gradient-to-l from-emerald-500 to-teal-600 text-white px-5 py-2.5 rounded-xl hover:from-emerald-600 hover:to-teal-700 transition shadow-md shadow-emerald-100 flex items-center gap-2 text-sm font-medium">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+                        </svg>
+                        إسناد انتداب
+                    </button>
+                </div>
+                <div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-sm">
+                            <thead class="bg-gray-50 border-b border-gray-100">
+                                <tr>
+                                    <th class="px-4 py-3 text-right font-medium text-gray-500">اسم الانتداب</th>
+                                    <th class="px-4 py-3 text-right font-medium text-gray-500">المكان</th>
+                                    <th class="px-4 py-3 text-right font-medium text-gray-500">التاريخ</th>
+                                    <th class="px-4 py-3 text-right font-medium text-gray-500">الموظف</th>
+                                    <th class="px-4 py-3 text-right font-medium text-gray-500">إجراءات</th>
+                                </tr>
+                            </thead>
+                            <tbody id="mandatesTable" class="divide-y divide-gray-50"></tbody>
+                        </table>
+                    </div>
+                    <div id="mandatesEmpty" class="hidden p-8 text-center text-gray-400">لا يوجد انتدابات</div>
+                </div>
+            </section>
+
+        </main>
+    </div>
+
+    <!-- ========== MODALS ========== -->
+
+    <!-- Employee Modal -->
+    <div id="employeeModal" class="fixed inset-0 z-50 hidden">
+        <div class="absolute inset-0 bg-black/40 backdrop-blur-sm" onclick="closeModal('employeeModal')"></div>
+        <div
+            class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-white rounded-2xl shadow-2xl w-full max-w-md p-6 max-h-[90vh] overflow-y-auto">
+            <h3 id="employeeModalTitle" class="text-xl font-bold text-gray-800 mb-6">إضافة موظف</h3>
+            <form id="employeeForm" class="space-y-4">
+                <input type="hidden" id="employeeId">
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">الاسم الكامل</label>
+                    <input type="text" id="empName" required
+                        class="w-full px-4 py-2.5 border border-gray-200 rounded-xl focus:ring-2 focus:ring-emerald-500 outline-none">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">اسم المستخدم</label>
+                    <input type="text" id="empUsername" required
+                        class="w-full px-4 py-2.5 border border-gray-200 rounded-xl focus:ring-2 focus:ring-emerald-500 outline-none"
+                        dir="ltr">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">كلمة المرور</label>
+                    <input type="password" id="empPassword"
+                        class="w-full px-4 py-2.5 border border-gray-200 rounded-xl focus:ring-2 focus:ring-emerald-500 outline-none"
+                        dir="ltr">
+                    <p id="empPasswordHint" class="text-xs text-gray-400 mt-1 hidden">اتركها فارغة للإبقاء على كلمة
+                        المرور الحالية</p>
+                </div>
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">الدور</label>
+                        <select id="empRole" required
+                            class="w-full px-4 py-2.5 border border-gray-200 rounded-xl focus:ring-2 focus:ring-emerald-500 outline-none">
+                            <option value="dept_manager">مدير إدارة</option>
+                            <option value="supervisor">ضابط</option>
+                            <option value="operator">منفذ</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">الإدارة</label>
+                        <select id="empDepartment" required
+                            class="w-full px-4 py-2.5 border border-gray-200 rounded-xl focus:ring-2 focus:ring-emerald-500 outline-none">
+                            <option value="shifts">إدارة المناوبات</option>
+                            <option value="hr">إدارة الموارد البشرية</option>
+                            <option value="operations">إدارة العمليات</option>
+                            <option value="workforce">إدارة القوى العاملة</option>
+                        </select>
+                    </div>
+                </div>
+                <div id="shiftFieldContainer">
+                    <label class="block text-sm font-medium text-gray-700 mb-1">المناوبة</label>
+                    <select id="empShift"
+                        class="w-full px-4 py-2.5 border border-gray-200 rounded-xl focus:ring-2 focus:ring-emerald-500 outline-none">
+                        <option value="">بدون مناوبة</option>
+                        <option value="أ">مناوبة أ</option>
+                        <option value="ب">مناوبة ب</option>
+                        <option value="ج">مناوبة ج</option>
+                        <option value="د">مناوبة د</option>
+                        <option value="مساندة_صباحية">مساندة صباحية</option>
+                        <option value="مساندة_مسائية">مساندة مسائية</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">تاريخ التعيين</label>
+                    <input type="date" id="empJoinDate" required
+                        class="w-full px-4 py-2.5 border border-gray-200 rounded-xl focus:ring-2 focus:ring-emerald-500 outline-none">
+                </div>
+                <div class="flex gap-3 pt-2">
+                    <button type="submit"
+                        class="flex-1 py-2.5 bg-gradient-to-l from-emerald-500 to-teal-600 text-white rounded-xl hover:from-emerald-600 hover:to-teal-700 transition font-medium">حفظ</button>
+                    <button type="button" onclick="closeModal('employeeModal')"
+                        class="flex-1 py-2.5 bg-gray-100 text-gray-700 rounded-xl hover:bg-gray-200 transition font-medium">إلغاء</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Course Modal -->
+    <div id="courseModal" class="fixed inset-0 z-50 hidden">
+        <div class="absolute inset-0 bg-black/40 backdrop-blur-sm" onclick="closeModal('courseModal')"></div>
+        <div
+            class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-white rounded-2xl shadow-2xl w-full max-w-lg p-6 max-h-[90vh] overflow-y-auto">
+            <h3 class="text-xl font-bold text-gray-800 mb-6">إسناد دورة تدريبية</h3>
+            <form id="courseForm" class="space-y-4">
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">اسم الدورة</label>
+                    <input type="text" id="courseTitle" required
+                        class="w-full px-4 py-2.5 border border-gray-200 rounded-xl focus:ring-2 focus:ring-emerald-500 outline-none">
+                </div>
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">المكان</label>
+                        <input type="text" id="courseLocation" required
+                            class="w-full px-4 py-2.5 border border-gray-200 rounded-xl focus:ring-2 focus:ring-emerald-500 outline-none">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">التاريخ</label>
+                        <input type="date" id="courseDate" required
+                            class="w-full px-4 py-2.5 border border-gray-200 rounded-xl focus:ring-2 focus:ring-emerald-500 outline-none">
+                    </div>
+                </div>
+                <!-- Role Filter -->
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">فلترة حسب الدور</label>
+                    <select id="courseRoleFilter"
+                        class="w-full px-4 py-2.5 border border-gray-200 rounded-xl focus:ring-2 focus:ring-emerald-500 outline-none">
+                        <option value="">الكل</option>
+                        <option value="supervisor">ضباط</option>
+                        <option value="operator">منفذين</option>
+                    </select>
+                </div>
+                <!-- Nomination List -->
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">اختر الموظف (مرتب حسب الأولوية)</label>
+                    <div id="courseNominationList" class="border border-gray-200 rounded-xl max-h-48 overflow-y-auto">
+                    </div>
+                </div>
+                <input type="hidden" id="courseEmployeeId">
+                <div class="flex gap-3 pt-2">
+                    <button type="submit"
+                        class="flex-1 py-2.5 bg-gradient-to-l from-emerald-500 to-teal-600 text-white rounded-xl hover:from-emerald-600 hover:to-teal-700 transition font-medium">إسناد</button>
+                    <button type="button" onclick="closeModal('courseModal')"
+                        class="flex-1 py-2.5 bg-gray-100 text-gray-700 rounded-xl hover:bg-gray-200 transition font-medium">إلغاء</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Mandate Modal -->
+    <div id="mandateModal" class="fixed inset-0 z-50 hidden">
+        <div class="absolute inset-0 bg-black/40 backdrop-blur-sm" onclick="closeModal('mandateModal')"></div>
+        <div
+            class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-white rounded-2xl shadow-2xl w-full max-w-lg p-6 max-h-[90vh] overflow-y-auto">
+            <h3 class="text-xl font-bold text-gray-800 mb-6">إسناد انتداب</h3>
+            <form id="mandateForm" class="space-y-4">
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">اسم الانتداب</label>
+                    <input type="text" id="mandateTitle" required
+                        class="w-full px-4 py-2.5 border border-gray-200 rounded-xl focus:ring-2 focus:ring-emerald-500 outline-none">
+                </div>
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">المكان</label>
+                        <input type="text" id="mandateLocation" required
+                            class="w-full px-4 py-2.5 border border-gray-200 rounded-xl focus:ring-2 focus:ring-emerald-500 outline-none">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">التاريخ</label>
+                        <input type="date" id="mandateDate" required
+                            class="w-full px-4 py-2.5 border border-gray-200 rounded-xl focus:ring-2 focus:ring-emerald-500 outline-none">
+                    </div>
+                </div>
+                <!-- Role Filter -->
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">فلترة حسب الدور</label>
+                    <select id="mandateRoleFilter"
+                        class="w-full px-4 py-2.5 border border-gray-200 rounded-xl focus:ring-2 focus:ring-emerald-500 outline-none">
+                        <option value="">الكل</option>
+                        <option value="supervisor">ضباط</option>
+                        <option value="operator">منفذين</option>
+                    </select>
+                </div>
+                <!-- Nomination List -->
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">اختر الموظف (مرتب حسب الأولوية)</label>
+                    <div id="mandateNominationList" class="border border-gray-200 rounded-xl max-h-48 overflow-y-auto">
+                    </div>
+                </div>
+                <input type="hidden" id="mandateEmployeeId">
+                <div class="flex gap-3 pt-2">
+                    <button type="submit"
+                        class="flex-1 py-2.5 bg-gradient-to-l from-emerald-500 to-teal-600 text-white rounded-xl hover:from-emerald-600 hover:to-teal-700 transition font-medium">إسناد</button>
+                    <button type="button" onclick="closeModal('mandateModal')"
+                        class="flex-1 py-2.5 bg-gray-100 text-gray-700 rounded-xl hover:bg-gray-200 transition font-medium">إلغاء</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Toast notification -->
+    <div id="toast" class="fixed bottom-6 left-1/2 -translate-x-1/2 z-[60] hidden">
+        <div class="bg-gray-800 text-white px-6 py-3 rounded-xl shadow-lg text-sm font-medium"></div>
+    </div>
+
+    <script src="/js/dashboard.js"></script>
+</body>
+
+</html>
