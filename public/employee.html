@@ -25,14 +25,22 @@
     <!-- Top Navbar -->
     <nav class="bg-gradient-to-l from-emerald-600 to-teal-700 text-white shadow-lg sticky top-0 z-50">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 py-3 flex items-center justify-between">
-            <div class="flex items-center gap-2">
-                <div class="w-9 h-9 bg-white/20 rounded-xl flex items-center justify-center">
-                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <div class="flex items-center gap-3">
+                <button id="menuToggle" class="lg:hidden p-2 hover:bg-white/10 rounded-lg transition">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                            d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                            d="M4 6h16M4 12h16M4 18h16" />
                     </svg>
+                </button>
+                <div class="flex items-center gap-2">
+                    <div class="w-9 h-9 bg-white/20 rounded-xl flex items-center justify-center">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                        </svg>
+                    </div>
+                    <h1 class="text-lg font-bold hidden sm:block">نظام إدارة الموظفين</h1>
                 </div>
-                <h1 class="text-lg font-bold">نظام إدارة الموظفين</h1>
             </div>
             <div class="bg-white/10 px-4 py-1.5 rounded-lg flex items-center gap-2">
                 <span class="text-emerald-100 text-xs">رصيد الإجازات:</span>
@@ -63,126 +71,584 @@
         </div>
     </nav>
 
-    <main class="max-w-5xl mx-auto p-4 sm:p-6 lg:p-8 space-y-8">
-
-        <!-- My Leaves Section -->
-        <section>
-            <div class="flex items-center justify-between mb-4">
-                <h2 class="text-xl font-bold text-gray-800 flex items-center gap-2">
-                    <svg class="w-6 h-6 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+    <div class="flex">
+        <!-- Sidebar -->
+        <aside id="sidebar"
+            class="fixed lg:sticky top-[60px] right-0 h-[calc(100vh-60px)] w-64 bg-white border-l border-gray-200 shadow-sm transform translate-x-full lg:translate-x-0 transition-transform z-40 overflow-y-auto">
+            <nav class="p-4 space-y-1">
+                <a href="#" data-section="attendance"
+                    class="nav-link flex items-center gap-3 px-4 py-3 rounded-xl text-gray-600 hover:bg-emerald-50 hover:text-emerald-700 transition font-medium">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                            d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                            d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
                     </svg>
-                    إجازاتي
-                </h2>
-                <button id="requestLeaveBtn"
-                    class="bg-gradient-to-l from-emerald-500 to-teal-600 text-white px-4 py-2 rounded-xl hover:from-emerald-600 hover:to-teal-700 transition shadow-md shadow-emerald-100 flex items-center gap-2 text-sm font-medium">
-                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    الحضور
+                </a>
+                <a href="#" data-section="profile"
+                    class="nav-link flex items-center gap-3 px-4 py-3 rounded-xl text-gray-600 hover:bg-emerald-50 hover:text-emerald-700 transition font-medium">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                            d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+                            d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
                     </svg>
-                    طلب إجازة
-                </button>
-            </div>
-            <div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
-                <div class="overflow-x-auto">
-                    <table class="w-full text-sm">
-                        <thead class="bg-gray-50 border-b border-gray-100">
-                            <tr>
-                                <th class="px-4 py-3 text-right font-medium text-gray-500">من</th>
-                                <th class="px-4 py-3 text-right font-medium text-gray-500">إلى</th>
-                                <th class="px-4 py-3 text-right font-medium text-gray-500">الحالة</th>
-                            </tr>
-                        </thead>
-                        <tbody id="myLeavesTable" class="divide-y divide-gray-50"></tbody>
-                    </table>
-                </div>
-                <div id="myLeavesEmpty" class="hidden p-8 text-center text-gray-400">لا يوجد إجازات</div>
-            </div>
-        </section>
+                    صفحتي
+                </a>
+            </nav>
+        </aside>
 
-        <!-- Shift Leaves (Supervisor only) -->
-        <section id="shiftLeavesSection" class="hidden">
-            <h2 class="text-xl font-bold text-gray-800 mb-4 flex items-center gap-2">
-                <svg class="w-6 h-6 text-teal-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                        d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z" />
-                </svg>
-                إجازات المناوبة المعتمدة
-            </h2>
-            <div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
-                <div class="overflow-x-auto">
-                    <table class="w-full text-sm">
-                        <thead class="bg-gray-50 border-b border-gray-100">
-                            <tr>
-                                <th class="px-4 py-3 text-right font-medium text-gray-500">الموظف</th>
-                                <th class="px-4 py-3 text-right font-medium text-gray-500">الدور</th>
-                                <th class="px-4 py-3 text-right font-medium text-gray-500">من</th>
-                                <th class="px-4 py-3 text-right font-medium text-gray-500">إلى</th>
-                            </tr>
-                        </thead>
-                        <tbody id="shiftLeavesTable" class="divide-y divide-gray-50"></tbody>
-                    </table>
-                </div>
-                <div id="shiftLeavesEmpty" class="hidden p-8 text-center text-gray-400">لا يوجد إجازات معتمدة في مناوبتك
-                </div>
-            </div>
-        </section>
+        <!-- Sidebar overlay for mobile -->
+        <div id="sidebarOverlay" class="fixed inset-0 bg-black/30 z-30 hidden lg:hidden"></div>
 
-        <!-- My Courses -->
-        <section>
-            <h2 class="text-xl font-bold text-gray-800 mb-4 flex items-center gap-2">
-                <svg class="w-6 h-6 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                        d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
-                </svg>
-                دوراتي التدريبية
-            </h2>
-            <div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
-                <div class="overflow-x-auto">
-                    <table class="w-full text-sm">
-                        <thead class="bg-gray-50 border-b border-gray-100">
-                            <tr>
-                                <th class="px-4 py-3 text-right font-medium text-gray-500">اسم الدورة</th>
-                                <th class="px-4 py-3 text-right font-medium text-gray-500">المكان</th>
-                                <th class="px-4 py-3 text-right font-medium text-gray-500">التاريخ</th>
-                            </tr>
-                        </thead>
-                        <tbody id="myCoursesTable" class="divide-y divide-gray-50"></tbody>
-                    </table>
-                </div>
-                <div id="myCoursesEmpty" class="hidden p-8 text-center text-gray-400">لا يوجد دورات مسندة لك</div>
-            </div>
-        </section>
+        <!-- Main Content -->
+        <main class="flex-1 p-4 sm:p-6 lg:p-8 max-w-5xl mx-auto w-full">
 
-        <!-- My Mandates -->
-        <section>
-            <h2 class="text-xl font-bold text-gray-800 mb-4 flex items-center gap-2">
-                <svg class="w-6 h-6 text-teal-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                        d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                        d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
-                </svg>
-                انتداباتي
-            </h2>
-            <div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
-                <div class="overflow-x-auto">
-                    <table class="w-full text-sm">
-                        <thead class="bg-gray-50 border-b border-gray-100">
-                            <tr>
-                                <th class="px-4 py-3 text-right font-medium text-gray-500">اسم الانتداب</th>
-                                <th class="px-4 py-3 text-right font-medium text-gray-500">المكان</th>
-                                <th class="px-4 py-3 text-right font-medium text-gray-500">التاريخ</th>
-                            </tr>
-                        </thead>
-                        <tbody id="myMandatesTable" class="divide-y divide-gray-50"></tbody>
-                    </table>
+            <!-- ============================== -->
+            <!-- WINDOW 1: ATTENDANCE (Default) -->
+            <!-- ============================== -->
+            <section id="section-attendance" class="content-section hidden">
+
+                <!-- Employee Check-in/out Section (all shift employees) -->
+                <div id="attendanceSection" class="hidden">
+                    <h2 class="text-xl font-bold text-gray-800 mb-4 flex items-center gap-2">
+                        <svg class="w-6 h-6 text-amber-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                        </svg>
+                        التحضير اليومي
+                    </h2>
+
+                    <!-- Status Card -->
+                    <div id="attendanceStatusCard"
+                        class="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 mb-6">
+                        <div id="noSessionMsg" class="text-center text-gray-400 py-4">
+                            <svg class="w-12 h-12 mx-auto mb-3 text-gray-300" fill="none" stroke="currentColor"
+                                viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                            </svg>
+                            <p>لا توجد جلسة تحضير مفتوحة لمناوبتك اليوم</p>
+                        </div>
+                        <div id="attendanceActions" class="hidden">
+                            <div class="flex items-center justify-between mb-4">
+                                <div>
+                                    <span id="attendanceStatusBadge"
+                                        class="px-3 py-1 rounded-lg text-xs font-bold"></span>
+                                </div>
+                                <div class="text-sm text-gray-500">
+                                    <span id="attendanceDate"></span>
+                                </div>
+                            </div>
+
+                            <!-- Signature Pad -->
+                            <div id="signaturePadContainer" class="mb-4">
+                                <label class="block text-sm font-medium text-gray-700 mb-2">التوقيع الإلكتروني</label>
+                                <div
+                                    class="border-2 border-dashed border-gray-300 rounded-xl overflow-hidden bg-white">
+                                    <canvas id="signatureCanvas" width="400" height="150"
+                                        class="w-full cursor-crosshair" style="touch-action: none;"></canvas>
+                                </div>
+                                <div class="flex gap-2 mt-2">
+                                    <button id="clearSignatureBtn" type="button"
+                                        class="text-xs text-gray-500 hover:text-red-500 transition flex items-center gap-1">
+                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                                        </svg>
+                                        مسح التوقيع
+                                    </button>
+                                    <button id="loadSavedSigBtn" type="button"
+                                        class="text-xs text-emerald-600 hover:text-emerald-700 transition flex items-center gap-1">
+                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" />
+                                        </svg>
+                                        استخدام التوقيع المحفوظ
+                                    </button>
+                                    <button id="saveDefaultSigBtn" type="button"
+                                        class="text-xs text-blue-600 hover:text-blue-700 transition flex items-center gap-1">
+                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                d="M8 7H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-3m-1 4l-3 3m0 0l-3-3m3 3V4" />
+                                        </svg>
+                                        حفظ كتوقيع افتراضي
+                                    </button>
+                                </div>
+                            </div>
+
+                            <div class="flex gap-3">
+                                <button id="checkInBtn"
+                                    class="flex-1 py-3 bg-gradient-to-l from-emerald-500 to-teal-600 text-white rounded-xl hover:from-emerald-600 hover:to-teal-700 transition font-bold text-sm flex items-center justify-center gap-2 shadow-md">
+                                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                            d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h7a3 3 0 013 3v1" />
+                                    </svg>
+                                    تسجيل حضور
+                                </button>
+                                <button id="checkOutBtn"
+                                    class="flex-1 py-3 bg-gradient-to-l from-orange-500 to-red-500 text-white rounded-xl hover:from-orange-600 hover:to-red-600 transition font-bold text-sm flex items-center justify-center gap-2 shadow-md disabled:opacity-50 disabled:cursor-not-allowed"
+                                    disabled>
+                                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                            d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+                                    </svg>
+                                    تسجيل انصراف
+                                </button>
+                            </div>
+
+                            <!-- Done State -->
+                            <div id="attendanceDoneMsg" class="hidden mt-4 p-4 bg-emerald-50 rounded-xl text-center">
+                                <svg class="w-10 h-10 mx-auto mb-2 text-emerald-500" fill="none" stroke="currentColor"
+                                    viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                        d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                </svg>
+                                <p class="text-emerald-700 font-bold">تم تسجيل حضورك وانصرافك بنجاح ✅</p>
+                            </div>
+                        </div>
+                    </div>
                 </div>
-                <div id="myMandatesEmpty" class="hidden p-8 text-center text-gray-400">لا يوجد انتدابات مسندة لك</div>
+
+                <!-- No Shift Message -->
+                <div id="noShiftMsg"
+                    class="bg-white rounded-2xl shadow-sm border border-gray-100 p-8 text-center text-gray-400">
+                    <svg class="w-16 h-16 mx-auto mb-4 text-gray-300" fill="none" stroke="currentColor"
+                        viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                    <p class="text-lg font-medium text-gray-500">لا توجد مناوبة مسندة لك</p>
+                    <p class="text-sm text-gray-400 mt-1">يمكنك التوجه لصفحتك الشخصية لعرض بياناتك</p>
+                </div>
+
+                <!-- Supervisor Session Management Section -->
+                <div id="supervisorAttendanceSection" class="hidden mt-6">
+                    <div class="flex items-center justify-between mb-4">
+                        <h2 class="text-xl font-bold text-gray-800 flex items-center gap-2">
+                            <svg class="w-6 h-6 text-indigo-600" fill="none" stroke="currentColor"
+                                viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" />
+                            </svg>
+                            إدارة التحضير - المناوبة
+                            <span id="supervisorShiftLabel" class="text-indigo-600"></span>
+                        </h2>
+                        <button id="openSessionBtn"
+                            class="bg-gradient-to-l from-indigo-500 to-purple-600 text-white px-5 py-2.5 rounded-xl hover:from-indigo-600 hover:to-purple-700 transition shadow-md flex items-center gap-2 text-sm font-medium">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+                            </svg>
+                            فتح جلسة تحضير
+                        </button>
+                    </div>
+
+                    <!-- Session Info -->
+                    <div id="sessionInfoCard"
+                        class="hidden bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden mb-6">
+                        <div
+                            class="p-4 bg-gradient-to-l from-indigo-50 to-purple-50 border-b border-indigo-100 flex items-center justify-between">
+                            <div class="flex items-center gap-3">
+                                <span id="sessionStatusBadge"
+                                    class="px-3 py-1 rounded-lg text-xs font-bold"></span>
+                                <span id="sessionDateLabel" class="text-sm text-gray-600"></span>
+                            </div>
+                            <div class="flex gap-2">
+                                <button id="closeSessionBtn"
+                                    class="text-sm bg-yellow-500 text-white px-3 py-1.5 rounded-lg hover:bg-yellow-600 transition flex items-center gap-1">
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                            d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+                                    </svg>
+                                    إغلاق الجلسة
+                                </button>
+                                <button id="approveSessionBtn"
+                                    class="text-sm bg-gradient-to-l from-emerald-500 to-teal-600 text-white px-3 py-1.5 rounded-lg hover:from-emerald-600 hover:to-teal-700 transition flex items-center gap-1 shadow-sm">
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                            d="M5 13l4 4L19 7" />
+                                    </svg>
+                                    اعتماد وإرسال للإدارة
+                                </button>
+                            </div>
+                        </div>
+                        <!-- Shift Times -->
+                        <div class="p-4 border-b border-gray-100">
+                            <div class="grid grid-cols-2 gap-4">
+                                <div>
+                                    <label class="block text-xs font-medium text-gray-500 mb-1">وقت بداية
+                                        المناوبة</label>
+                                    <input type="time" id="shiftStartTime"
+                                        class="w-full px-3 py-2 border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-indigo-400 outline-none"
+                                        dir="ltr">
+                                </div>
+                                <div>
+                                    <label class="block text-xs font-medium text-gray-500 mb-1">وقت نهاية
+                                        المناوبة</label>
+                                    <input type="time" id="shiftEndTime"
+                                        class="w-full px-3 py-2 border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-indigo-400 outline-none"
+                                        dir="ltr">
+                                </div>
+                            </div>
+                            <button id="saveShiftTimesBtn"
+                                class="mt-2 text-xs text-indigo-600 hover:text-indigo-800 font-bold transition flex items-center gap-1">
+                                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                        d="M5 13l4 4L19 7" />
+                                </svg>
+                                حفظ الأوقات
+                            </button>
+                        </div>
+                        <!-- Attendance Stats Summary -->
+                        <div id="attendanceStatsSummary" class="grid grid-cols-4 gap-3 p-4 border-b border-gray-100">
+                            <div class="text-center p-2 bg-emerald-50 rounded-xl">
+                                <div id="statPresent" class="text-xl font-bold text-emerald-600">0</div>
+                                <div class="text-xs text-gray-500">حاضر</div>
+                            </div>
+                            <div class="text-center p-2 bg-red-50 rounded-xl">
+                                <div id="statAbsent" class="text-xl font-bold text-red-600">0</div>
+                                <div class="text-xs text-gray-500">غائب</div>
+                            </div>
+                            <div class="text-center p-2 bg-yellow-50 rounded-xl">
+                                <div id="statLate" class="text-xl font-bold text-yellow-600">0</div>
+                                <div class="text-xs text-gray-500">متأخر</div>
+                            </div>
+                            <div class="text-center p-2 bg-blue-50 rounded-xl">
+                                <div id="statExcused" class="text-xl font-bold text-blue-600">0</div>
+                                <div class="text-xs text-gray-500">معذور</div>
+                            </div>
+                        </div>
+                        <!-- Attendance Records Table -->
+                        <div class="overflow-x-auto">
+                            <table class="w-full text-sm">
+                                <thead class="bg-gray-50 border-b border-gray-100">
+                                    <tr>
+                                        <th class="px-4 py-3 text-right font-medium text-gray-500">#</th>
+                                        <th class="px-4 py-3 text-right font-medium text-gray-500">الموظف</th>
+                                        <th class="px-4 py-3 text-right font-medium text-gray-500">الدور</th>
+                                        <th class="px-4 py-3 text-right font-medium text-gray-500">الحالة</th>
+                                        <th class="px-4 py-3 text-right font-medium text-gray-500">الحضور</th>
+                                        <th class="px-4 py-3 text-right font-medium text-gray-500">الانصراف</th>
+                                        <th class="px-4 py-3 text-right font-medium text-gray-500">التوقيع</th>
+                                        <th class="px-4 py-3 text-right font-medium text-gray-500">ملاحظة</th>
+                                        <th class="px-4 py-3 text-right font-medium text-gray-500">إجراءات</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="sessionRecordsTable" class="divide-y divide-gray-50"></tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <!-- Approved Message -->
+                    <div id="sessionApprovedMsg"
+                        class="hidden bg-emerald-50 rounded-2xl p-6 text-center border border-emerald-200">
+                        <svg class="w-12 h-12 mx-auto mb-3 text-emerald-500" fill="none" stroke="currentColor"
+                            viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                        </svg>
+                        <p class="text-emerald-700 font-bold text-lg">تم اعتماد سجل الحضور وإرساله لإدارة المناوبات ✅
+                        </p>
+                    </div>
+                </div>
+
+                <!-- Shift Leaves (Supervisor only) -->
+                <div id="shiftLeavesSection" class="hidden mt-6">
+                    <h2 class="text-xl font-bold text-gray-800 mb-4 flex items-center gap-2">
+                        <svg class="w-6 h-6 text-teal-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z" />
+                        </svg>
+                        إجازات المناوبة المعتمدة
+                    </h2>
+                    <div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
+                        <div class="overflow-x-auto">
+                            <table class="w-full text-sm">
+                                <thead class="bg-gray-50 border-b border-gray-100">
+                                    <tr>
+                                        <th class="px-4 py-3 text-right font-medium text-gray-500">الموظف</th>
+                                        <th class="px-4 py-3 text-right font-medium text-gray-500">الدور</th>
+                                        <th class="px-4 py-3 text-right font-medium text-gray-500">من</th>
+                                        <th class="px-4 py-3 text-right font-medium text-gray-500">إلى</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="shiftLeavesTable" class="divide-y divide-gray-50"></tbody>
+                            </table>
+                        </div>
+                        <div id="shiftLeavesEmpty" class="hidden p-8 text-center text-gray-400">لا يوجد إجازات
+                            معتمدة في مناوبتك</div>
+                    </div>
+                </div>
+
+            </section>
+
+            <!-- ================================ -->
+            <!-- WINDOW 2: MY PROFILE (Tabbed)    -->
+            <!-- ================================ -->
+            <section id="section-profile" class="content-section hidden">
+
+                <!-- Profile Tabs -->
+                <div class="mb-6">
+                    <div id="profileTabs"
+                        class="flex flex-wrap gap-2 bg-white p-2 rounded-2xl shadow-sm border border-gray-100">
+                        <button data-profile-tab="leaves"
+                            class="profile-tab active-profile-tab px-5 py-2.5 rounded-xl text-sm font-bold transition-all flex items-center gap-2">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                            </svg>
+                            الإجازات
+                        </button>
+                        <button data-profile-tab="mandates"
+                            class="profile-tab px-5 py-2.5 rounded-xl text-sm font-bold transition-all flex items-center gap-2">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+                            </svg>
+                            الانتدابات
+                        </button>
+                        <button data-profile-tab="courses"
+                            class="profile-tab px-5 py-2.5 rounded-xl text-sm font-bold transition-all flex items-center gap-2">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
+                            </svg>
+                            الدورات
+                        </button>
+                        <button data-profile-tab="signature"
+                            class="profile-tab px-5 py-2.5 rounded-xl text-sm font-bold transition-all flex items-center gap-2">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
+                            </svg>
+                            التوقيع
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Tab Content: Leaves -->
+                <div id="profileTab-leaves" class="profile-tab-content">
+                    <div class="flex items-center justify-between mb-4">
+                        <h2 class="text-xl font-bold text-gray-800 flex items-center gap-2">
+                            <svg class="w-6 h-6 text-emerald-600" fill="none" stroke="currentColor"
+                                viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                            </svg>
+                            إجازاتي
+                        </h2>
+                        <button id="requestLeaveBtn"
+                            class="bg-gradient-to-l from-emerald-500 to-teal-600 text-white px-4 py-2 rounded-xl hover:from-emerald-600 hover:to-teal-700 transition shadow-md shadow-emerald-100 flex items-center gap-2 text-sm font-medium">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+                            </svg>
+                            طلب إجازة
+                        </button>
+                    </div>
+                    <div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
+                        <div class="overflow-x-auto">
+                            <table class="w-full text-sm">
+                                <thead class="bg-gray-50 border-b border-gray-100">
+                                    <tr>
+                                        <th class="px-4 py-3 text-right font-medium text-gray-500">من</th>
+                                        <th class="px-4 py-3 text-right font-medium text-gray-500">إلى</th>
+                                        <th class="px-4 py-3 text-right font-medium text-gray-500">الحالة</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="myLeavesTable" class="divide-y divide-gray-50"></tbody>
+                            </table>
+                        </div>
+                        <div id="myLeavesEmpty" class="hidden p-8 text-center text-gray-400">لا يوجد إجازات</div>
+                    </div>
+                </div>
+
+                <!-- Tab Content: Mandates -->
+                <div id="profileTab-mandates" class="profile-tab-content hidden">
+                    <h2 class="text-xl font-bold text-gray-800 mb-4 flex items-center gap-2">
+                        <svg class="w-6 h-6 text-teal-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+                        </svg>
+                        انتداباتي
+                    </h2>
+                    <div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
+                        <div class="overflow-x-auto">
+                            <table class="w-full text-sm">
+                                <thead class="bg-gray-50 border-b border-gray-100">
+                                    <tr>
+                                        <th class="px-4 py-3 text-right font-medium text-gray-500">اسم الانتداب</th>
+                                        <th class="px-4 py-3 text-right font-medium text-gray-500">المكان</th>
+                                        <th class="px-4 py-3 text-right font-medium text-gray-500">التاريخ</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="myMandatesTable" class="divide-y divide-gray-50"></tbody>
+                            </table>
+                        </div>
+                        <div id="myMandatesEmpty" class="hidden p-8 text-center text-gray-400">لا يوجد انتدابات مسندة
+                            لك</div>
+                    </div>
+                </div>
+
+                <!-- Tab Content: Courses -->
+                <div id="profileTab-courses" class="profile-tab-content hidden">
+                    <h2 class="text-xl font-bold text-gray-800 mb-4 flex items-center gap-2">
+                        <svg class="w-6 h-6 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
+                        </svg>
+                        دوراتي التدريبية
+                    </h2>
+                    <div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
+                        <div class="overflow-x-auto">
+                            <table class="w-full text-sm">
+                                <thead class="bg-gray-50 border-b border-gray-100">
+                                    <tr>
+                                        <th class="px-4 py-3 text-right font-medium text-gray-500">اسم الدورة</th>
+                                        <th class="px-4 py-3 text-right font-medium text-gray-500">المكان</th>
+                                        <th class="px-4 py-3 text-right font-medium text-gray-500">التاريخ</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="myCoursesTable" class="divide-y divide-gray-50"></tbody>
+                            </table>
+                        </div>
+                        <div id="myCoursesEmpty" class="hidden p-8 text-center text-gray-400">لا يوجد دورات مسندة لك
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Tab Content: Signature -->
+                <div id="profileTab-signature" class="profile-tab-content hidden">
+                    <h2 class="text-xl font-bold text-gray-800 mb-4 flex items-center gap-2">
+                        <svg class="w-6 h-6 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
+                        </svg>
+                        توقيعي الإلكتروني
+                    </h2>
+                    <div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
+                        <div class="p-6">
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                <!-- Drawing Pad -->
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 mb-2">ارسم توقيعك هنا</label>
+                                    <div
+                                        class="border-2 border-dashed border-gray-300 rounded-xl overflow-hidden bg-gray-50/50 hover:border-purple-300 transition-colors">
+                                        <canvas id="signatureCanvasMain" width="400" height="160"
+                                            class="w-full cursor-crosshair bg-white"
+                                            style="touch-action: none;"></canvas>
+                                    </div>
+                                    <div class="flex gap-3 mt-3">
+                                        <button id="clearSigMainBtn" type="button"
+                                            class="text-sm text-gray-500 hover:text-red-500 transition flex items-center gap-1.5 px-3 py-1.5 rounded-lg hover:bg-red-50">
+                                            <svg class="w-4 h-4" fill="none" stroke="currentColor"
+                                                viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                    d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                                            </svg>
+                                            مسح
+                                        </button>
+                                        <button id="saveSigMainBtn" type="button"
+                                            class="text-sm bg-gradient-to-l from-purple-500 to-indigo-600 text-white hover:from-purple-600 hover:to-indigo-700 transition flex items-center gap-1.5 px-4 py-1.5 rounded-lg shadow-sm font-medium">
+                                            <svg class="w-4 h-4" fill="none" stroke="currentColor"
+                                                viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                    d="M8 7H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-3m-1 4l-3 3m0 0l-3-3m3 3V4" />
+                                            </svg>
+                                            حفظ التوقيع
+                                        </button>
+                                    </div>
+                                </div>
+                                <!-- Current Saved Signature Preview -->
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 mb-2">التوقيع المحفوظ</label>
+                                    <div id="savedSigPreview"
+                                        class="border-2 border-gray-200 rounded-xl h-[160px] flex items-center justify-center bg-gray-50/50">
+                                        <div id="noSavedSigMsg" class="text-center text-gray-400">
+                                            <svg class="w-10 h-10 mx-auto mb-2 text-gray-300" fill="none"
+                                                stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                    d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
+                                            </svg>
+                                            <p class="text-sm">لا يوجد توقيع محفوظ</p>
+                                        </div>
+                                        <img id="savedSigImage" class="hidden max-h-[150px] max-w-full p-2"
+                                            alt="التوقيع المحفوظ">
+                                    </div>
+                                    <p class="text-xs text-gray-400 mt-2 flex items-center gap-1">
+                                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor"
+                                            viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                        </svg>
+                                        سيُستخدم هذا التوقيع تلقائياً عند تسجيل الحضور والانصراف
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+            </section>
+
+        </main>
+    </div>
+
+    <!-- Approval Modal with Supervisor Signature -->
+    <div id="approvalModal" class="fixed inset-0 z-50 hidden">
+        <div class="absolute inset-0 bg-black/40 backdrop-blur-sm"
+            onclick="document.getElementById('approvalModal').classList.add('hidden')"></div>
+        <div
+            class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-white rounded-2xl shadow-2xl w-full max-w-lg p-6">
+            <h3 class="text-xl font-bold text-gray-800 mb-4">اعتماد كشف الحضور</h3>
+            <p class="text-sm text-gray-500 mb-4">بعد الاعتماد سيتم إرسال الكشف لمدير إدارة المناوبات ولن يمكن التعديل.
+            </p>
+            <div class="space-y-4">
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">ملاحظات (اختياري)</label>
+                    <textarea id="approvalNotes" rows="2"
+                        class="w-full px-4 py-2.5 border border-gray-200 rounded-xl focus:ring-2 focus:ring-emerald-500 outline-none text-sm"
+                        placeholder="ملاحظات إضافية..."></textarea>
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">توقيع المشرف <span
+                            class="text-red-500">*</span></label>
+                    <div
+                        class="border-2 border-dashed border-gray-300 rounded-xl overflow-hidden bg-white hover:border-indigo-300 transition-colors">
+                        <canvas id="supervisorSigCanvas" width="400" height="120"
+                            class="w-full cursor-crosshair bg-white" style="touch-action: none;"></canvas>
+                    </div>
+                    <div class="flex gap-3 mt-2">
+                        <button id="clearSupervisorSigBtn" type="button"
+                            class="text-xs text-gray-500 hover:text-red-500 transition flex items-center gap-1">
+                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                            </svg>
+                            مسح
+                        </button>
+                        <button id="loadSupervisorSavedSigBtn" type="button"
+                            class="text-xs text-emerald-600 hover:text-emerald-700 transition flex items-center gap-1">
+                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" />
+                            </svg>
+                            استخدام التوقيع المحفوظ
+                        </button>
+                    </div>
+                </div>
+                <div class="flex gap-3 pt-2">
+                    <button id="confirmApproveBtn"
+                        class="flex-1 py-2.5 bg-gradient-to-l from-emerald-500 to-teal-600 text-white rounded-xl hover:from-emerald-600 hover:to-teal-700 transition font-medium">اعتماد
+                        وإرسال</button>
+                    <button type="button" onclick="document.getElementById('approvalModal').classList.add('hidden')"
+                        class="flex-1 py-2.5 bg-gray-100 text-gray-700 rounded-xl hover:bg-gray-200 transition font-medium">إلغاء</button>
+                </div>
             </div>
-        </section>
-    </main>
+        </div>
+    </div>
 
     <!-- Leave Request Modal -->
     <div id="leaveModal" class="fixed inset-0 z-50 hidden">

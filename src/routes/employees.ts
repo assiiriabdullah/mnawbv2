@@ -44,6 +44,59 @@ router.get('/', requireManager, (req: Request, res: Response) => {
     res.json(employees);
 });
 
+// GET /api/employees/:id - Get employee profile with leaves, courses, mandates (manager only)
+router.get('/:id', requireManager, (req: Request, res: Response) => {
+    const user = req.session.user!;
+    const { id } = req.params;
+
+    const employee = db.prepare(`
+        SELECT id, name, username, role, department, shift, join_date, annual_leave_balance, created_at 
+        FROM employees WHERE id = ?
+    `).get(Number(id)) as any;
+
+    if (!employee) {
+        res.status(404).json({ error: 'الموظف غير موجود' });
+        return;
+    }
+
+    // Dept manager can only view employees in their department
+    if (!isGeneralManager(req) && employee.department !== user.department) {
+        res.status(403).json({ error: 'لا يمكنك عرض بيانات موظف من إدارة أخرى' });
+        return;
+    }
+
+    // Get employee's leaves
+    const leaves = db.prepare(`
+        SELECT l.*, e.name as employee_name, e.role as employee_role
+        FROM leaves l JOIN employees e ON l.employee_id = e.id
+        WHERE l.employee_id = ?
+        ORDER BY l.created_at DESC
+    `).all(Number(id));
+
+    // Get employee's courses
+    const courses = db.prepare(`
+        SELECT c.*, e.name as employee_name, e.role as employee_role
+        FROM courses c JOIN employees e ON c.employee_id = e.id
+        WHERE c.employee_id = ?
+        ORDER BY c.date DESC
+    `).all(Number(id));
+
+    // Get employee's mandates
+    const mandates = db.prepare(`
+        SELECT m.*, e.name as employee_name, e.role as employee_role
+        FROM mandates m JOIN employees e ON m.employee_id = e.id
+        WHERE m.employee_id = ?
+        ORDER BY m.date DESC
+    `).all(Number(id));
+
+    res.json({
+        employee,
+        leaves,
+        courses,
+        mandates,
+    });
+});
+
 // POST /api/employees - Add new employee (manager only)
 router.post('/', requireManager, (req: Request, res: Response) => {
     const manager = req.session.user!;

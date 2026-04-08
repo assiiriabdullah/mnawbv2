@@ -70,6 +70,46 @@ export function initializeDatabase(): void {
       created_at TEXT DEFAULT (datetime('now')),
       FOREIGN KEY (user_id) REFERENCES employees(id) ON DELETE SET NULL
     );
+
+    CREATE TABLE IF NOT EXISTS attendance_sessions (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      supervisor_id INTEGER NOT NULL,
+      shift TEXT NOT NULL,
+      date TEXT NOT NULL,
+      status TEXT NOT NULL DEFAULT 'open' CHECK(status IN ('open', 'closed', 'approved')),
+      notes TEXT,
+      shift_start_time TEXT,
+      shift_end_time TEXT,
+      supervisor_signature TEXT,
+      created_at TEXT DEFAULT (datetime('now')),
+      approved_at TEXT,
+      FOREIGN KEY (supervisor_id) REFERENCES employees(id),
+      UNIQUE(shift, date)
+    );
+
+    CREATE TABLE IF NOT EXISTS attendance_records (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      session_id INTEGER NOT NULL,
+      employee_id INTEGER NOT NULL,
+      check_in_time TEXT,
+      check_in_signature TEXT,
+      check_out_time TEXT,
+      check_out_signature TEXT,
+      status TEXT NOT NULL DEFAULT 'absent' CHECK(status IN ('present', 'absent', 'late', 'excused')),
+      note TEXT,
+      created_at TEXT DEFAULT (datetime('now')),
+      FOREIGN KEY (session_id) REFERENCES attendance_sessions(id) ON DELETE CASCADE,
+      FOREIGN KEY (employee_id) REFERENCES employees(id) ON DELETE CASCADE,
+      UNIQUE(session_id, employee_id)
+    );
+
+    CREATE TABLE IF NOT EXISTS employee_signatures (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      employee_id INTEGER NOT NULL UNIQUE,
+      signature_data TEXT NOT NULL,
+      updated_at TEXT DEFAULT (datetime('now')),
+      FOREIGN KEY (employee_id) REFERENCES employees(id) ON DELETE CASCADE
+    );
   `);
 
   // Migration: Add annual_leave_balance column if it doesn't exist
@@ -100,6 +140,17 @@ export function initializeDatabase(): void {
   } catch (e) {
     // Ignore
   }
+
+  // Migration: Add shift_start_time, shift_end_time, supervisor_signature to attendance_sessions
+  try {
+    db.exec(`ALTER TABLE attendance_sessions ADD COLUMN shift_start_time TEXT`);
+  } catch (e) { }
+  try {
+    db.exec(`ALTER TABLE attendance_sessions ADD COLUMN shift_end_time TEXT`);
+  } catch (e) { }
+  try {
+    db.exec(`ALTER TABLE attendance_sessions ADD COLUMN supervisor_signature TEXT`);
+  } catch (e) { }
 
   // Create default general manager if none exists
   const manager = db.prepare("SELECT id FROM employees WHERE role = 'general_manager'").get();

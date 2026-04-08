@@ -450,6 +450,8 @@ function loadSection(section) {
         case 'leaves': loadLeaves(); break;
         case 'courses': loadCourses(); break;
         case 'mandates': loadMandates(); break;
+        case 'attendance': loadApprovedAttendance(); break;
+        case 'employee-profile': break; // loaded via viewEmployeeProfile
     }
 }
 
@@ -518,6 +520,9 @@ function renderEmployees(list) {
         <td class="px-4 py-3">
           ${emp.role !== 'general_manager' ? `
             <div class="flex gap-1">
+              <button onclick="viewEmployeeProfile(${emp.id})" class="p-1.5 hover:bg-blue-50 rounded-lg text-blue-600 transition" title="عرض الملف">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>
+              </button>
               <button onclick="editEmployee(${emp.id})" class="p-1.5 hover:bg-emerald-50 rounded-lg text-emerald-600 transition" title="تعديل">
                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
               </button>
@@ -945,10 +950,322 @@ document.getElementById('logoutBtn').addEventListener('click', async () => {
     window.location.href = '/';
 });
 
+// ---- Attendance Records (Dashboard) ----
+async function loadApprovedAttendance() {
+    const shift = document.getElementById('attendanceShiftFilter').value;
+    const dateFrom = document.getElementById('attendanceDateFrom').value;
+    const dateTo = document.getElementById('attendanceDateTo').value;
+
+    let url = '/api/attendance/approved?';
+    if (shift) url += `shift=${encodeURIComponent(shift)}&`;
+    if (dateFrom) url += `date_from=${dateFrom}&`;
+    if (dateTo) url += `date_to=${dateTo}&`;
+
+    try {
+        const sessions = await apiCall(url);
+        const container = document.getElementById('attendanceSessionsList');
+        const empty = document.getElementById('attendanceEmpty');
+
+        if (sessions.length === 0) {
+            container.innerHTML = '';
+            empty.classList.remove('hidden');
+            return;
+        }
+
+        empty.classList.add('hidden');
+        container.innerHTML = sessions.map(s => {
+            const shiftColors = {
+                'أ': 'from-blue-500 to-blue-600',
+                'ب': 'from-emerald-500 to-emerald-600',
+                'ج': 'from-amber-500 to-amber-600',
+                'د': 'from-purple-500 to-purple-600',
+                'مساندة_صباحية': 'from-teal-500 to-teal-600',
+                'مساندة_مسائية': 'from-indigo-500 to-indigo-600',
+            };
+            const gradient = shiftColors[s.shift] || 'from-gray-500 to-gray-600';
+
+            return `
+            <div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden hover:shadow-md transition">
+                <div class="flex items-center justify-between p-4">
+                    <div class="flex items-center gap-4">
+                        <div class="w-12 h-12 bg-gradient-to-br ${gradient} rounded-xl flex items-center justify-center text-white font-bold text-lg">
+                            ${s.shift}
+                        </div>
+                        <div>
+                            <h3 class="font-bold text-gray-800">مناوبة ${s.shift} - ${s.date}</h3>
+                            <p class="text-xs text-gray-500">المشرف: ${s.supervisor_name} · اعتمد في: ${s.approved_at ? new Date(s.approved_at).toLocaleString('ar-SA') : '-'}</p>
+                            ${s.shift_start_time || s.shift_end_time ? `<p class="text-xs text-indigo-500 mt-0.5">وقت المناوبة: ${s.shift_start_time || '?'} - ${s.shift_end_time || '?'}</p>` : ''}
+                        </div>
+                    </div>
+                    <div class="flex items-center gap-3">
+                        <div class="flex gap-2 text-xs">
+                            <span class="px-2 py-1 rounded-lg bg-emerald-100 text-emerald-700 font-bold">حاضر ${s.present_count}</span>
+                            <span class="px-2 py-1 rounded-lg bg-red-100 text-red-700 font-bold">غائب ${s.absent_count}</span>
+                            <span class="px-2 py-1 rounded-lg bg-yellow-100 text-yellow-700 font-bold">متأخر ${s.late_count}</span>
+                            <span class="px-2 py-1 rounded-lg bg-blue-100 text-blue-700 font-bold">معذور ${s.excused_count}</span>
+                        </div>
+                        <button onclick="viewAttendanceDetail(${s.id})"
+                            class="text-sm bg-gradient-to-l from-emerald-500 to-teal-600 text-white px-3 py-1.5 rounded-lg hover:from-emerald-600 hover:to-teal-700 transition font-medium">
+                            عرض التفاصيل
+                        </button>
+                    </div>
+                </div>
+            </div>`;
+        }).join('');
+    } catch (err) {
+        showToast('خطأ في تحميل سجلات الحضور');
+    }
+}
+
+window.viewAttendanceDetail = async function (sessionId) {
+    try {
+        const data = await apiCall(`/api/attendance/approved/${sessionId}`);
+        const content = document.getElementById('attendanceDetailContent');
+
+        const statusLabels = { present: 'حاضر', absent: 'غائب', late: 'متأخر', excused: 'معذور' };
+        const statusColors = {
+            present: 'bg-emerald-100 text-emerald-700',
+            absent: 'bg-red-100 text-red-700',
+            late: 'bg-yellow-100 text-yellow-700',
+            excused: 'bg-blue-100 text-blue-700',
+        };
+
+        const formatTime = (t) => t ? new Date(t + 'Z').toLocaleTimeString('ar-SA', { hour: '2-digit', minute: '2-digit' }) : '-';
+
+        const s = data.session;
+        content.innerHTML = `
+            <!-- Session Header -->
+            <div class="mb-4 p-4 bg-gradient-to-l from-indigo-50 to-purple-50 rounded-xl">
+                <div class="flex items-center justify-between mb-2">
+                    <div>
+                        <span class="font-bold text-gray-800 text-lg">مناوبة ${s.shift}</span>
+                        <span class="text-gray-500 text-sm mr-3">${s.date}</span>
+                    </div>
+                    <span class="px-3 py-1 rounded-lg text-xs font-bold bg-emerald-100 text-emerald-700">معتمد</span>
+                </div>
+                <div class="grid grid-cols-2 md:grid-cols-4 gap-3 text-sm">
+                    <div>
+                        <span class="text-gray-500">المشرف:</span>
+                        <span class="font-medium text-gray-800">${s.supervisor_name}</span>
+                    </div>
+                    <div>
+                        <span class="text-gray-500">وقت الاستلام:</span>
+                        <span class="font-medium text-gray-800">${s.shift_start_time || '-'}</span>
+                    </div>
+                    <div>
+                        <span class="text-gray-500">وقت الانتهاء:</span>
+                        <span class="font-medium text-gray-800">${s.shift_end_time || '-'}</span>
+                    </div>
+                    <div>
+                        <span class="text-gray-500">تاريخ الاعتماد:</span>
+                        <span class="font-medium text-gray-800">${s.approved_at ? new Date(s.approved_at).toLocaleString('ar-SA') : '-'}</span>
+                    </div>
+                </div>
+            </div>
+            ${s.notes ? `<div class="mb-4 p-3 bg-yellow-50 rounded-xl text-sm text-yellow-800">ملاحظات: ${s.notes}</div>` : ''}
+            
+            <!-- Employee Records Table -->
+            <div class="overflow-x-auto mb-6">
+                <table class="w-full text-sm">
+                    <thead class="bg-gray-50 border-b border-gray-100">
+                        <tr>
+                            <th class="px-3 py-2 text-right font-medium text-gray-500">#</th>
+                            <th class="px-3 py-2 text-right font-medium text-gray-500">الموظف</th>
+                            <th class="px-3 py-2 text-right font-medium text-gray-500">الدور</th>
+                            <th class="px-3 py-2 text-right font-medium text-gray-500">الحالة</th>
+                            <th class="px-3 py-2 text-right font-medium text-gray-500">الحضور</th>
+                            <th class="px-3 py-2 text-right font-medium text-gray-500">الانصراف</th>
+                            <th class="px-3 py-2 text-right font-medium text-gray-500">توقيع الحضور</th>
+                            <th class="px-3 py-2 text-right font-medium text-gray-500">توقيع الانصراف</th>
+                            <th class="px-3 py-2 text-right font-medium text-gray-500">ملاحظة</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-gray-50">
+                        ${data.records.map((r, i) => `
+                            <tr class="hover:bg-gray-50/50 transition">
+                                <td class="px-3 py-2 text-gray-400 text-xs">${i + 1}</td>
+                                <td class="px-3 py-2 font-medium text-gray-800">${r.employee_name}</td>
+                                <td class="px-3 py-2">${roleBadge(r.employee_role)}</td>
+                                <td class="px-3 py-2">
+                                    <span class="px-2 py-0.5 rounded-lg text-xs font-bold ${statusColors[r.status] || ''}">${statusLabels[r.status] || r.status}</span>
+                                </td>
+                                <td class="px-3 py-2 text-gray-600 text-xs">${formatTime(r.check_in_time)}</td>
+                                <td class="px-3 py-2 text-gray-600 text-xs">${formatTime(r.check_out_time)}</td>
+                                <td class="px-3 py-2">${r.check_in_signature ? `<img src="${r.check_in_signature}" class="h-8 rounded border border-gray-200">` : '<span class="text-gray-300 text-xs">-</span>'}</td>
+                                <td class="px-3 py-2">${r.check_out_signature ? `<img src="${r.check_out_signature}" class="h-8 rounded border border-gray-200">` : '<span class="text-gray-300 text-xs">-</span>'}</td>
+                                <td class="px-3 py-2 text-gray-500 text-xs">${r.note || '-'}</td>
+                            </tr>
+                        `).join('')}
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Supervisor Signature -->
+            <div class="p-4 bg-indigo-50 rounded-xl">
+                <h4 class="text-sm font-bold text-indigo-800 mb-2">توقيع المشرف: ${s.supervisor_name}</h4>
+                ${s.supervisor_signature 
+                    ? `<div class="bg-white rounded-lg p-2 border border-indigo-200 inline-block"><img src="${s.supervisor_signature}" class="h-16" alt="توقيع المشرف"></div>` 
+                    : '<span class="text-indigo-400 text-sm">لا يوجد توقيع</span>'}
+            </div>`;
+
+        document.getElementById('attendanceDetailModal').classList.remove('hidden');
+    } catch (err) {
+        showToast('خطأ في تحميل تفاصيل الجلسة');
+    }
+};
+
+// Attendance filter button
+document.getElementById('attendanceFilterBtn').addEventListener('click', loadApprovedAttendance);
+
+// ============================================================
+// EMPLOYEE PROFILE VIEWER
+// ============================================================
+
+window.viewEmployeeProfile = async function (id) {
+    try {
+        const data = await apiCall(`/api/employees/${id}`);
+        const emp = data.employee;
+
+        // Update breadcrumb and nav
+        document.getElementById('empProfileBreadcrumb').textContent = emp.name;
+        document.getElementById('empProfileNavLabel').textContent = emp.name;
+        document.getElementById('empProfileNavLink').classList.remove('hidden');
+
+        // Update info card
+        document.getElementById('empProfileName').textContent = emp.name;
+        document.getElementById('empProfileLeaveBalance').textContent = `${emp.annual_leave_balance ?? '-'} يوم`;
+        document.getElementById('empProfileJoinDate').textContent = emp.join_date;
+        document.getElementById('empProfileBadges').innerHTML = `
+            ${roleBadge(emp.role)}
+            ${deptBadge(emp.department)}
+            ${emp.shift ? `<span class="px-2 py-0.5 rounded-lg text-xs font-medium bg-amber-100 text-amber-700">مناوبة ${shiftLabel(emp.shift)}</span>` : ''}
+        `;
+
+        // Populate leaves
+        const leavesTable = document.getElementById('empProfileLeavesTable');
+        const leavesEmpty = document.getElementById('empProfileLeavesEmpty');
+        if (data.leaves.length === 0) {
+            leavesTable.innerHTML = '';
+            leavesEmpty.classList.remove('hidden');
+        } else {
+            leavesEmpty.classList.add('hidden');
+            leavesTable.innerHTML = data.leaves.map(l => `
+                <tr class="hover:bg-gray-50/50 transition">
+                    <td class="px-4 py-3 text-gray-600">${l.start_date}</td>
+                    <td class="px-4 py-3 text-gray-600">${l.end_date}</td>
+                    <td class="px-4 py-3">${statusBadge(l.status)}</td>
+                </tr>
+            `).join('');
+        }
+
+        // Populate mandates
+        const mandatesTable = document.getElementById('empProfileMandatesTable');
+        const mandatesEmpty = document.getElementById('empProfileMandatesEmpty');
+        if (data.mandates.length === 0) {
+            mandatesTable.innerHTML = '';
+            mandatesEmpty.classList.remove('hidden');
+        } else {
+            mandatesEmpty.classList.add('hidden');
+            mandatesTable.innerHTML = data.mandates.map(m => `
+                <tr class="hover:bg-gray-50/50 transition">
+                    <td class="px-4 py-3 font-medium text-gray-800">${m.title}</td>
+                    <td class="px-4 py-3 text-gray-600">${m.location}</td>
+                    <td class="px-4 py-3 text-gray-600">${m.date}</td>
+                </tr>
+            `).join('');
+        }
+
+        // Populate courses
+        const coursesTable = document.getElementById('empProfileCoursesTable');
+        const coursesEmpty = document.getElementById('empProfileCoursesEmpty');
+        if (data.courses.length === 0) {
+            coursesTable.innerHTML = '';
+            coursesEmpty.classList.remove('hidden');
+        } else {
+            coursesEmpty.classList.add('hidden');
+            coursesTable.innerHTML = data.courses.map(c => `
+                <tr class="hover:bg-gray-50/50 transition">
+                    <td class="px-4 py-3 font-medium text-gray-800">${c.title}</td>
+                    <td class="px-4 py-3 text-gray-600">${c.location}</td>
+                    <td class="px-4 py-3 text-gray-600">${c.date}</td>
+                </tr>
+            `).join('');
+        }
+
+        // Reset tabs to leaves
+        switchEmpProfileTab('leaves');
+
+        // Navigate to profile section
+        const links = document.querySelectorAll('.nav-link');
+        const sections = document.querySelectorAll('.content-section');
+        links.forEach(l => l.classList.remove('bg-emerald-50', 'text-emerald-700'));
+        document.getElementById('empProfileNavLink').classList.add('bg-emerald-50', 'text-emerald-700');
+        sections.forEach(s => s.classList.add('hidden'));
+        document.getElementById('section-employee-profile').classList.remove('hidden');
+
+        // Close mobile sidebar
+        document.getElementById('sidebar').classList.add('translate-x-full');
+        document.getElementById('sidebarOverlay').classList.add('hidden');
+
+    } catch (err) {
+        showToast('خطأ في تحميل ملف الموظف: ' + err.message);
+    }
+};
+
+window.backToEmployees = function () {
+    document.getElementById('empProfileNavLink').classList.add('hidden');
+    // Navigate back to employees section
+    const empLink = document.querySelector('.nav-link[data-section="employees"]');
+    if (empLink) empLink.click();
+};
+
+function setupEmpProfileTabs() {
+    const tabs = document.querySelectorAll('.emp-profile-tab');
+
+    tabs.forEach(tab => {
+        tab.addEventListener('click', () => {
+            const tabKey = tab.dataset.empTab;
+            switchEmpProfileTab(tabKey);
+        });
+    });
+
+    // Apply initial styles
+    const activeTab = document.querySelector('.emp-profile-tab[data-emp-tab="leaves"]');
+    if (activeTab) {
+        activeTab.classList.add('bg-emerald-600', 'text-white', 'shadow-md');
+        activeTab.classList.remove('text-gray-500', 'hover:bg-gray-100');
+    }
+    tabs.forEach(t => {
+        if (t.dataset.empTab !== 'leaves') {
+            t.classList.add('text-gray-500', 'hover:bg-gray-100');
+        }
+    });
+}
+
+function switchEmpProfileTab(tabKey) {
+    const tabs = document.querySelectorAll('.emp-profile-tab');
+    const contents = document.querySelectorAll('.emp-profile-tab-content');
+
+    tabs.forEach(t => {
+        t.classList.remove('active-emp-tab', 'bg-emerald-600', 'text-white', 'shadow-md');
+        t.classList.add('text-gray-500', 'hover:bg-gray-100');
+    });
+    const activeTab = document.querySelector(`.emp-profile-tab[data-emp-tab="${tabKey}"]`);
+    if (activeTab) {
+        activeTab.classList.add('active-emp-tab', 'bg-emerald-600', 'text-white', 'shadow-md');
+        activeTab.classList.remove('text-gray-500', 'hover:bg-gray-100');
+    }
+
+    contents.forEach(c => c.classList.add('hidden'));
+    const content = document.getElementById(`empProfileTab-${tabKey}`);
+    if (content) content.classList.remove('hidden');
+}
+
 // ---- Initialize ----
 (async () => {
     await checkAuth();
     setupNavigation();
     setupMobileMenu();
     setupDeptTabs();
+    setupEmpProfileTabs();
 })();
