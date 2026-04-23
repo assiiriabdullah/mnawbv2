@@ -10,6 +10,7 @@ declare module 'express-session' {
             role: 'general_manager' | 'dept_manager' | 'supervisor' | 'operator';
             department: string | null;
             shift: string | null;
+            support_group: string | null;
         };
     }
 }

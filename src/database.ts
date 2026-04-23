@@ -152,6 +152,67 @@ export function initializeDatabase(): void {
     db.exec(`ALTER TABLE attendance_sessions ADD COLUMN supervisor_signature TEXT`);
   } catch (e) { }
 
+  // Migration: Add support_group column to employees
+  try {
+    db.exec(`ALTER TABLE employees ADD COLUMN support_group TEXT CHECK(support_group IN ('morning', 'afternoon', 'night') OR support_group IS NULL)`);
+  } catch (e) {
+    // Column already exists, ignore
+  }
+
+  // ========== SUPPORT ATTENDANCE TABLES ==========
+
+  db.exec(`
+    CREATE TABLE IF NOT EXISTS support_daily_reports (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      date TEXT NOT NULL UNIQUE,
+      status TEXT NOT NULL DEFAULT 'active' CHECK(status IN ('active', 'completed', 'approved')),
+      final_notes TEXT,
+      submitted_by INTEGER,
+      submitted_at TEXT,
+      approved_by INTEGER,
+      approved_at TEXT,
+      created_at TEXT DEFAULT (datetime('now')),
+      FOREIGN KEY (submitted_by) REFERENCES employees(id),
+      FOREIGN KEY (approved_by) REFERENCES employees(id)
+    );
+
+    CREATE TABLE IF NOT EXISTS support_sessions (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      report_id INTEGER NOT NULL,
+      group_type TEXT NOT NULL CHECK(group_type IN ('morning', 'afternoon', 'night')),
+      checkin_supervisor_id INTEGER,
+      checkout_supervisor_id INTEGER,
+      shift_start_time TEXT NOT NULL,
+      shift_end_time TEXT NOT NULL,
+      checkin_status TEXT NOT NULL DEFAULT 'pending' CHECK(checkin_status IN ('pending', 'open', 'completed')),
+      checkout_status TEXT NOT NULL DEFAULT 'pending' CHECK(checkout_status IN ('pending', 'open', 'completed')),
+      checkin_supervisor_signature TEXT,
+      checkout_supervisor_signature TEXT,
+      notes TEXT,
+      created_at TEXT DEFAULT (datetime('now')),
+      FOREIGN KEY (report_id) REFERENCES support_daily_reports(id) ON DELETE CASCADE,
+      FOREIGN KEY (checkin_supervisor_id) REFERENCES employees(id),
+      FOREIGN KEY (checkout_supervisor_id) REFERENCES employees(id),
+      UNIQUE(report_id, group_type)
+    );
+
+    CREATE TABLE IF NOT EXISTS support_attendance_records (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      session_id INTEGER NOT NULL,
+      employee_id INTEGER NOT NULL,
+      check_in_time TEXT,
+      check_in_signature TEXT,
+      check_out_time TEXT,
+      check_out_signature TEXT,
+      status TEXT NOT NULL DEFAULT 'absent' CHECK(status IN ('present', 'absent', 'late', 'excused')),
+      note TEXT,
+      created_at TEXT DEFAULT (datetime('now')),
+      FOREIGN KEY (session_id) REFERENCES support_sessions(id) ON DELETE CASCADE,
+      FOREIGN KEY (employee_id) REFERENCES employees(id) ON DELETE CASCADE,
+      UNIQUE(session_id, employee_id)
+    );
+  `);
+
   // Create default general manager if none exists
   const manager = db.prepare("SELECT id FROM employees WHERE role = 'general_manager'").get();
   if (!manager) {
@@ -161,6 +222,50 @@ export function initializeDatabase(): void {
       VALUES (?, ?, ?, 'general_manager', NULL, NULL, ?)
     `).run('المدير العام', 'admin', hashedPassword, '2020-01-01');
     console.log('✅ تم إنشاء حساب المدير العام الافتراضي: admin / admin123');
+  }
+
+  // Seed test data for support attendance
+  const testSupervisor = db.prepare("SELECT id FROM employees WHERE username = 'sup_a'").get();
+  if (!testSupervisor) {
+    const pwd = bcrypt.hashSync('123456', 10);
+
+    // Supervisors
+    db.prepare(`INSERT INTO employees (name, username, password, role, department, shift, join_date) VALUES (?, ?, ?, 'supervisor', 'shifts', 'أ', '2023-01-01')`)
+      .run('أحمد المشرف', 'sup_a', pwd);
+    db.prepare(`INSERT INTO employees (name, username, password, role, department, shift, join_date) VALUES (?, ?, ?, 'supervisor', 'shifts', 'ب', '2023-01-01')`)
+      .run('سعد المشرف', 'sup_b', pwd);
+
+    // Regular shift operators
+    db.prepare(`INSERT INTO employees (name, username, password, role, department, shift, join_date) VALUES (?, ?, ?, 'operator', 'shifts', 'أ', '2023-06-01')`)
+      .run('فهد العمري', 'op_a1', pwd);
+    db.prepare(`INSERT INTO employees (name, username, password, role, department, shift, join_date) VALUES (?, ?, ?, 'operator', 'shifts', 'أ', '2023-06-01')`)
+      .run('ماجد الحربي', 'op_a2', pwd);
+
+    // Support operators - Morning group
+    db.prepare(`INSERT INTO employees (name, username, password, role, department, shift, support_group, join_date) VALUES (?, ?, ?, 'operator', 'shifts', NULL, 'morning', '2023-06-01')`)
+      .run('خالد المساندة', 'sup_m1', pwd);
+    db.prepare(`INSERT INTO employees (name, username, password, role, department, shift, support_group, join_date) VALUES (?, ?, ?, 'operator', 'shifts', NULL, 'morning', '2023-06-01')`)
+      .run('عبدالله المساندة', 'sup_m2', pwd);
+
+    // Support operators - Afternoon group
+    db.prepare(`INSERT INTO employees (name, username, password, role, department, shift, support_group, join_date) VALUES (?, ?, ?, 'operator', 'shifts', NULL, 'afternoon', '2023-06-01')`)
+      .run('محمد المساندة', 'sup_a1', pwd);
+    db.prepare(`INSERT INTO employees (name, username, password, role, department, shift, support_group, join_date) VALUES (?, ?, ?, 'operator', 'shifts', NULL, 'afternoon', '2023-06-01')`)
+      .run('يوسف المساندة', 'sup_a2', pwd);
+
+    // Support operators - Night group
+    db.prepare(`INSERT INTO employees (name, username, password, role, department, shift, support_group, join_date) VALUES (?, ?, ?, 'operator', 'shifts', NULL, 'night', '2023-06-01')`)
+      .run('تركي المساندة', 'sup_n1', pwd);
+    db.prepare(`INSERT INTO employees (name, username, password, role, department, shift, support_group, join_date) VALUES (?, ?, ?, 'operator', 'shifts', NULL, 'night', '2023-06-01')`)
+      .run('ناصر المساندة', 'sup_n2', pwd);
+
+    console.log('✅ تم إنشاء بيانات تجريبية للمساندة:');
+    console.log('   مشرف أ: sup_a / 123456');
+    console.log('   مشرف ب: sup_b / 123456');
+    console.log('   منفذ مناوبة أ: op_a1, op_a2 / 123456');
+    console.log('   منفذ مساندة صباح: sup_m1, sup_m2 / 123456');
+    console.log('   منفذ مساندة عصر: sup_a1, sup_a2 / 123456');
+    console.log('   منفذ مساندة ليل: sup_n1, sup_n2 / 123456');
   }
 }
 

@@ -977,6 +977,440 @@ function getSupervisorSigData() {
     return null;
 }
 
+// ============================================================
+// SUPPORT ATTENDANCE SYSTEM
+// ============================================================
+
+let supportSessions = [];
+let selectedSupportGroup = null;
+let supportReportData = null;
+let supportSigCanvas, supportSigCtx, isSupportDrawing = false;
+
+const GROUP_LABELS = { morning: 'الصباح', afternoon: 'العصر', night: 'الليل' };
+const GROUP_ICONS = { morning: '🌅', afternoon: '🌇', night: '🌙' };
+
+function initSupportSignaturePad() {
+    supportSigCanvas = document.getElementById('supportSigCanvas');
+    if (!supportSigCanvas) return;
+    supportSigCtx = supportSigCanvas.getContext('2d');
+
+    function resizeCanvas() {
+        const rect = supportSigCanvas.getBoundingClientRect();
+        const dpr = window.devicePixelRatio || 1;
+        supportSigCanvas.width = rect.width * dpr;
+        supportSigCanvas.height = rect.height * dpr;
+        supportSigCtx.scale(dpr, dpr);
+        supportSigCtx.strokeStyle = '#1a1a2e';
+        supportSigCtx.lineWidth = 2.5;
+        supportSigCtx.lineCap = 'round';
+        supportSigCtx.lineJoin = 'round';
+    }
+    resizeCanvas();
+
+    function getPos(e) {
+        const rect = supportSigCanvas.getBoundingClientRect();
+        const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+        const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+        return { x: clientX - rect.left, y: clientY - rect.top };
+    }
+
+    function startDraw(e) { e.preventDefault(); isSupportDrawing = true; const pos = getPos(e); supportSigCtx.beginPath(); supportSigCtx.moveTo(pos.x, pos.y); }
+    function draw(e) { if (!isSupportDrawing) return; e.preventDefault(); const pos = getPos(e); supportSigCtx.lineTo(pos.x, pos.y); supportSigCtx.stroke(); }
+    function stopDraw(e) { if (e) e.preventDefault(); isSupportDrawing = false; }
+
+    supportSigCanvas.addEventListener('mousedown', startDraw);
+    supportSigCanvas.addEventListener('mousemove', draw);
+    supportSigCanvas.addEventListener('mouseup', stopDraw);
+    supportSigCanvas.addEventListener('mouseleave', stopDraw);
+    supportSigCanvas.addEventListener('touchstart', startDraw, { passive: false });
+    supportSigCanvas.addEventListener('touchmove', draw, { passive: false });
+    supportSigCanvas.addEventListener('touchend', stopDraw);
+
+    const clearBtn = document.getElementById('clearSupportSigBtn');
+    if (clearBtn) clearBtn.addEventListener('click', () => {
+        const rect = supportSigCanvas.getBoundingClientRect();
+        supportSigCtx.clearRect(0, 0, rect.width, rect.height);
+    });
+
+    const loadBtn = document.getElementById('loadSupportSavedSigBtn');
+    if (loadBtn) loadBtn.addEventListener('click', () => {
+        if (!savedSignatureData) {
+            showToast('لا يوجد توقيع محفوظ');
+            return;
+        }
+        const img = new Image();
+        img.onload = () => {
+            const rect = supportSigCanvas.getBoundingClientRect();
+            supportSigCtx.clearRect(0, 0, rect.width, rect.height);
+            supportSigCtx.drawImage(img, 0, 0, rect.width, rect.height);
+        };
+        img.src = savedSignatureData;
+    });
+}
+
+function getSupportSigData() {
+    if (!supportSigCanvas) return null;
+    const data = supportSigCtx.getImageData(0, 0, supportSigCanvas.width, supportSigCanvas.height).data;
+    for (let i = 3; i < data.length; i += 4) {
+        if (data[i] > 0) return supportSigCanvas.toDataURL('image/png');
+    }
+    return null;
+}
+
+// ---- Supervisor: Create Report ----
+async function createSupportReport() {
+    try {
+        const data = await apiCall('/api/support-attendance/reports', { method: 'POST', body: JSON.stringify({}) });
+        showToast(data.message || 'تم إنشاء كشف المساندة');
+        loadSupportAttendance();
+    } catch (err) {
+        showToast(err.message);
+    }
+}
+
+// ---- Supervisor: Load Today's Report ----
+async function loadSupportAttendance() {
+    try {
+        const data = await apiCall('/api/support-attendance/reports/today');
+        supportReportData = data;
+
+        const reportInfo = document.getElementById('supportReportInfo');
+        const noReport = document.getElementById('supportNoReport');
+        const createBtn = document.getElementById('createSupportReportBtn');
+
+        if (!data.report) {
+            reportInfo.classList.add('hidden');
+            noReport.classList.remove('hidden');
+            createBtn.classList.remove('hidden');
+            return;
+        }
+
+        noReport.classList.add('hidden');
+        createBtn.classList.add('hidden');
+        reportInfo.classList.remove('hidden');
+        supportSessions = data.sessions || [];
+
+        document.getElementById('supportReportDate').textContent = `التاريخ: ${data.report.date}`;
+        const statusEl = document.getElementById('supportReportStatus');
+        const statusMap = {
+            active: { label: 'نشط', color: 'bg-green-100 text-green-700' },
+            completed: { label: 'مرفوع', color: 'bg-blue-100 text-blue-700' },
+            approved: { label: 'معتمد', color: 'bg-purple-100 text-purple-700' },
+        };
+        const st = statusMap[data.report.status] || { label: data.report.status, color: 'bg-gray-100' };
+        statusEl.textContent = st.label;
+        statusEl.className = `px-3 py-1 rounded-lg text-xs font-bold ${st.color}`;
+
+        // Update group cards
+        for (const session of supportSessions) {
+            updateGroupCard(session);
+        }
+
+        // Show submitted message if completed
+        const submittedMsg = document.getElementById('supportSubmittedMsg');
+        const submitSection = document.getElementById('supportSubmitSection');
+        if (data.report.status === 'completed' || data.report.status === 'approved') {
+            submittedMsg.classList.remove('hidden');
+            submitSection.classList.add('hidden');
+            document.getElementById('supportGroupDetail').classList.add('hidden');
+        } else {
+            submittedMsg.classList.add('hidden');
+            // Check if all sessions completed for submit button
+            const allDone = supportSessions.every(s => s.checkin_status === 'completed' && s.checkout_status === 'completed');
+            if (allDone) {
+                submitSection.classList.remove('hidden');
+            } else {
+                submitSection.classList.add('hidden');
+            }
+        }
+
+        // If a group was selected, re-render it
+        if (selectedSupportGroup) {
+            selectSupportGroup(selectedSupportGroup);
+        }
+    } catch (err) {
+        console.error(err);
+    }
+}
+
+function updateGroupCard(session) {
+    const checkinEl = document.getElementById(`groupCheckin-${session.group_type}`);
+    const checkoutEl = document.getElementById(`groupCheckout-${session.group_type}`);
+
+    const checkinMap = { pending: { label: 'حضور ⏳', color: 'bg-gray-100 text-gray-500' }, open: { label: 'حضور 🟢', color: 'bg-green-100 text-green-700' }, completed: { label: 'حضور ✅', color: 'bg-green-100 text-green-700' } };
+    const checkoutMap = { pending: { label: 'انصراف ⏳', color: 'bg-gray-100 text-gray-500' }, open: { label: 'انصراف 🟢', color: 'bg-orange-100 text-orange-700' }, completed: { label: 'انصراف ✅', color: 'bg-orange-100 text-orange-700' } };
+
+    const ci = checkinMap[session.checkin_status] || { label: '?', color: '' };
+    const co = checkoutMap[session.checkout_status] || { label: '?', color: '' };
+
+    checkinEl.textContent = ci.label;
+    checkinEl.className = `text-xs px-2 py-0.5 rounded-full ${ci.color}`;
+    checkoutEl.textContent = co.label;
+    checkoutEl.className = `text-xs px-2 py-0.5 rounded-full ${co.color}`;
+
+    // Highlight selected card
+    const card = document.getElementById(`groupCard-${session.group_type}`);
+    if (selectedSupportGroup === session.group_type) {
+        card.classList.add('ring-2', 'ring-amber-400');
+    } else {
+        card.classList.remove('ring-2', 'ring-amber-400');
+    }
+}
+
+function selectSupportGroup(groupType) {
+    selectedSupportGroup = groupType;
+    const session = supportSessions.find(s => s.group_type === groupType);
+    if (!session) return;
+
+    // Highlight cards
+    for (const s of supportSessions) updateGroupCard(s);
+
+    const detail = document.getElementById('supportGroupDetail');
+    detail.classList.remove('hidden');
+
+    document.getElementById('selectedGroupIcon').textContent = GROUP_ICONS[groupType] || '';
+    document.getElementById('selectedGroupTitle').textContent = `مجموعة ${GROUP_LABELS[groupType] || groupType}`;
+
+    // Build action buttons
+    const actionsEl = document.getElementById('supportGroupActions');
+    let btns = '';
+
+    if (supportReportData?.report?.status === 'active') {
+        if (session.checkin_status === 'pending') {
+            btns += `<button onclick="supportSessionAction(${session.id}, 'open-checkin')" class="text-xs bg-emerald-500 text-white px-3 py-1.5 rounded-lg hover:bg-emerald-600 transition">فتح الحضور</button>`;
+        }
+        if (session.checkin_status === 'open') {
+            btns += `<button onclick="supportSessionAction(${session.id}, 'close-checkin')" class="text-xs bg-yellow-500 text-white px-3 py-1.5 rounded-lg hover:bg-yellow-600 transition">إغلاق الحضور</button>`;
+        }
+        if (session.checkin_status === 'completed' && session.checkout_status === 'pending') {
+            btns += `<button onclick="supportSessionAction(${session.id}, 'open-checkout')" class="text-xs bg-orange-500 text-white px-3 py-1.5 rounded-lg hover:bg-orange-600 transition">فتح الانصراف</button>`;
+        }
+        if (session.checkout_status === 'open') {
+            btns += `<button onclick="supportSessionAction(${session.id}, 'close-checkout')" class="text-xs bg-red-500 text-white px-3 py-1.5 rounded-lg hover:bg-red-600 transition">إغلاق الانصراف</button>`;
+        }
+    }
+    actionsEl.innerHTML = btns;
+
+    // Records
+    const records = session.records || [];
+    const tbody = document.getElementById('supportRecordsTable');
+
+    document.getElementById('supStatPresent').textContent = records.filter(r => r.status === 'present').length;
+    document.getElementById('supStatAbsent').textContent = records.filter(r => r.status === 'absent').length;
+    document.getElementById('supStatLate').textContent = records.filter(r => r.status === 'late').length;
+    document.getElementById('supStatExcused').textContent = records.filter(r => r.status === 'excused').length;
+
+    const statusOptions = ['present', 'absent', 'late', 'excused'];
+    const statusLabels = { present: 'حاضر', absent: 'غائب', late: 'متأخر', excused: 'معذور' };
+    const statusColors = { present: 'bg-emerald-100 text-emerald-700', absent: 'bg-red-100 text-red-700', late: 'bg-yellow-100 text-yellow-700', excused: 'bg-blue-100 text-blue-700' };
+    const formatTime = (t) => t ? new Date(t + 'Z').toLocaleTimeString('ar-SA', { hour: '2-digit', minute: '2-digit' }) : '-';
+    const isActive = supportReportData?.report?.status === 'active';
+
+    tbody.innerHTML = records.map((r, i) => {
+        const sigPreview = r.check_in_signature
+            ? `<img src="${r.check_in_signature}" class="h-8 rounded border border-gray-200 cursor-pointer hover:scale-150 transition">`
+            : '<span class="text-gray-300 text-xs">-</span>';
+
+        return `
+        <tr class="hover:bg-gray-50/50 transition">
+            <td class="px-4 py-3 text-gray-400 text-xs">${i + 1}</td>
+            <td class="px-4 py-3 font-medium text-gray-800">${r.employee_name}</td>
+            <td class="px-4 py-3">
+                ${isActive ? `<select onchange="updateSupportRecord(${r.id}, this.value)" class="text-xs px-2 py-1 rounded-lg border border-gray-200 ${statusColors[r.status]} font-bold">
+                    ${statusOptions.map(s => `<option value="${s}" ${r.status === s ? 'selected' : ''}>${statusLabels[s]}</option>`).join('')}
+                </select>` : `<span class="text-xs px-2 py-0.5 rounded-lg ${statusColors[r.status]} font-bold">${statusLabels[r.status]}</span>`}
+            </td>
+            <td class="px-4 py-3 text-gray-600 text-xs">${formatTime(r.check_in_time)}</td>
+            <td class="px-4 py-3 text-gray-600 text-xs">${formatTime(r.check_out_time)}</td>
+            <td class="px-4 py-3">${sigPreview}</td>
+            <td class="px-4 py-3">
+                ${isActive ? `<input type="text" id="supNote-${r.id}" class="text-xs px-2 py-1 rounded-lg border border-gray-200 w-20 focus:ring-1 focus:ring-amber-400 outline-none" value="${r.note || ''}" placeholder="ملاحظة..." onchange="updateSupportRecordNote(${r.id})">` : `<span class="text-xs text-gray-500">${r.note || '-'}</span>`}
+            </td>
+            <td class="px-4 py-3"></td>
+        </tr>`;
+    }).join('');
+}
+
+async function supportSessionAction(sessionId, action) {
+    try {
+        const body = {};
+        if (action === 'close-checkin' || action === 'close-checkout') {
+            body.signature = savedSignatureData || null;
+        }
+        await apiCall(`/api/support-attendance/sessions/${sessionId}/${action}`, {
+            method: 'PUT',
+            body: JSON.stringify(body),
+        });
+        showToast('تم التحديث ✅');
+        loadSupportAttendance();
+    } catch (err) {
+        showToast(err.message);
+    }
+}
+
+async function updateSupportRecord(recordId, status) {
+    try {
+        await apiCall(`/api/support-attendance/records/${recordId}`, {
+            method: 'PUT',
+            body: JSON.stringify({ status }),
+        });
+        loadSupportAttendance();
+    } catch (err) {
+        showToast(err.message);
+    }
+}
+
+async function updateSupportRecordNote(recordId) {
+    const noteEl = document.getElementById(`supNote-${recordId}`);
+    if (!noteEl) return;
+    try {
+        await apiCall(`/api/support-attendance/records/${recordId}`, {
+            method: 'PUT',
+            body: JSON.stringify({ note: noteEl.value }),
+        });
+    } catch (err) {
+        showToast(err.message);
+    }
+}
+
+// ---- Submit Support Report ----
+function setupSupportSubmitButton() {
+    const btn = document.getElementById('submitSupportReportBtn');
+    if (!btn) return;
+    btn.addEventListener('click', async () => {
+        if (!supportReportData?.report) return;
+        const signature = savedSignatureData || getSupervisorSigData() || 'auto';
+        try {
+            await apiCall(`/api/support-attendance/reports/${supportReportData.report.id}/submit`, {
+                method: 'PUT',
+                body: JSON.stringify({ signature, final_notes: '' }),
+            });
+            showToast('تم رفع كشف المساندة لإدارة المناوبات ✅');
+            loadSupportAttendance();
+        } catch (err) {
+            showToast(err.message);
+        }
+    });
+}
+
+// ---- Employee: Load Support Status ----
+async function loadSupportEmployeeStatus() {
+    try {
+        const data = await apiCall('/api/support-attendance/my-status');
+        if (!data.is_support) return;
+
+        const groupLabel = GROUP_LABELS[currentUser.support_group] || currentUser.support_group;
+        document.getElementById('supportGroupLabel').textContent = `- مجموعة ${groupLabel}`;
+
+        const noSession = document.getElementById('supportEmpNoSession');
+        const actions = document.getElementById('supportEmpActions');
+        const doneMsg = document.getElementById('supportEmpDoneMsg');
+        const checkInBtn = document.getElementById('supportCheckInBtn');
+        const checkOutBtn = document.getElementById('supportCheckOutBtn');
+        const sigContainer = document.getElementById('supportSigPadContainer');
+
+        if (!data.has_session || (!data.session)) {
+            noSession.classList.remove('hidden');
+            actions.classList.add('hidden');
+            return;
+        }
+
+        const session = data.session;
+        const record = data.record;
+
+        // Determine if check-in or check-out is available
+        const canCheckIn = session.checkin_status === 'open';
+        const canCheckOut = session.checkout_status === 'open';
+
+        if (!canCheckIn && !canCheckOut && !record?.check_in_time) {
+            noSession.classList.remove('hidden');
+            actions.classList.add('hidden');
+            return;
+        }
+
+        noSession.classList.add('hidden');
+        actions.classList.remove('hidden');
+
+        // Status badge
+        const badge = document.getElementById('supportEmpStatusBadge');
+        if (canCheckIn) {
+            badge.textContent = 'تسجيل الحضور مفتوح';
+            badge.className = 'px-3 py-1 rounded-lg text-xs font-bold bg-green-100 text-green-700';
+        } else if (canCheckOut) {
+            badge.textContent = 'تسجيل الانصراف مفتوح';
+            badge.className = 'px-3 py-1 rounded-lg text-xs font-bold bg-orange-100 text-orange-700';
+        } else {
+            badge.textContent = 'مغلق';
+            badge.className = 'px-3 py-1 rounded-lg text-xs font-bold bg-gray-100 text-gray-600';
+        }
+
+        if (record && record.check_in_time && record.check_out_time) {
+            sigContainer.classList.add('hidden');
+            checkInBtn.classList.add('hidden');
+            checkOutBtn.classList.add('hidden');
+            doneMsg.classList.remove('hidden');
+        } else if (record && record.check_in_time) {
+            checkInBtn.disabled = true;
+            checkInBtn.classList.add('opacity-50', 'cursor-not-allowed');
+            checkOutBtn.disabled = !canCheckOut;
+            doneMsg.classList.add('hidden');
+            sigContainer.classList.remove('hidden');
+            checkInBtn.classList.remove('hidden');
+            checkOutBtn.classList.remove('hidden');
+        } else {
+            checkInBtn.disabled = !canCheckIn;
+            checkOutBtn.disabled = true;
+            doneMsg.classList.add('hidden');
+            sigContainer.classList.remove('hidden');
+            checkInBtn.classList.remove('hidden');
+            checkOutBtn.classList.remove('hidden');
+        }
+    } catch (err) {
+        console.error('Support status error:', err);
+    }
+}
+
+function setupSupportEmployeeButtons() {
+    const checkInBtn = document.getElementById('supportCheckInBtn');
+    const checkOutBtn = document.getElementById('supportCheckOutBtn');
+
+    if (checkInBtn) checkInBtn.addEventListener('click', async () => {
+        let signature = savedSignatureData || getSupportSigData();
+        if (!signature) {
+            showToast('الرجاء حفظ توقيعك أولاً');
+            return;
+        }
+        try {
+            await apiCall('/api/support-attendance/check-in', {
+                method: 'POST',
+                body: JSON.stringify({ signature }),
+            });
+            showToast('تم تسجيل حضورك بنجاح ✅');
+            loadSupportEmployeeStatus();
+        } catch (err) {
+            showToast(err.message);
+        }
+    });
+
+    if (checkOutBtn) checkOutBtn.addEventListener('click', async () => {
+        let signature = savedSignatureData || getSupportSigData();
+        if (!signature) {
+            showToast('الرجاء حفظ توقيعك أولاً');
+            return;
+        }
+        try {
+            await apiCall('/api/support-attendance/check-out', {
+                method: 'POST',
+                body: JSON.stringify({ signature }),
+            });
+            showToast('تم تسجيل انصرافك بنجاح ✅');
+            loadSupportEmployeeStatus();
+        } catch (err) {
+            showToast(err.message);
+        }
+    });
+}
+
 // ---- Initialize ----
 (async () => {
     await checkAuth();
@@ -1012,4 +1446,38 @@ function getSupervisorSigData() {
             }, 15000);
         }
     }
+
+    // Show support attendance nav for supervisors and support employees
+    if (currentUser && (currentUser.role === 'supervisor' || currentUser.support_group)) {
+        document.getElementById('supportAttendanceNavLink').classList.remove('hidden');
+        // Make it a proper flex display
+        document.getElementById('supportAttendanceNavLink').style.display = 'flex';
+    }
+
+    // Initialize support attendance
+    if (currentUser && currentUser.role === 'supervisor') {
+        document.getElementById('supportSupervisorSection').classList.remove('hidden');
+        document.getElementById('createSupportReportBtn').addEventListener('click', createSupportReport);
+        setupSupportSubmitButton();
+        loadSupportAttendance();
+
+        // Auto-refresh every 15s
+        setInterval(loadSupportAttendance, 15000);
+    }
+
+    if (currentUser && currentUser.support_group) {
+        document.getElementById('supportEmployeeSection').classList.remove('hidden');
+        initSupportSignaturePad();
+        setupSupportEmployeeButtons();
+        loadSupportEmployeeStatus();
+
+        // Auto-refresh
+        setInterval(loadSupportEmployeeStatus, 10000);
+
+        // If no regular shift, default to support attendance
+        if (!currentUser.shift) {
+            navigateToSection('support-attendance');
+        }
+    }
 })();
+

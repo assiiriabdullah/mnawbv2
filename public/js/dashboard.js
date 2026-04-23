@@ -1261,6 +1261,144 @@ function switchEmpProfileTab(tabKey) {
     if (content) content.classList.remove('hidden');
 }
 
+// ============================================================
+// SUPPORT ATTENDANCE (DASHBOARD)
+// ============================================================
+
+async function loadSupportReports() {
+    const dateFrom = document.getElementById('supportDateFrom').value;
+    const dateTo = document.getElementById('supportDateTo').value;
+
+    let url = '/api/support-attendance/reports/approved?';
+    if (dateFrom) url += `date_from=${dateFrom}&`;
+    if (dateTo) url += `date_to=${dateTo}&`;
+
+    try {
+        const reports = await apiCall(url);
+        const container = document.getElementById('supportReportsList');
+        const empty = document.getElementById('supportReportsEmpty');
+
+        if (reports.length === 0) {
+            container.innerHTML = '';
+            empty.classList.remove('hidden');
+            return;
+        }
+
+        empty.classList.add('hidden');
+        container.innerHTML = reports.map(r => {
+            const statusMap = {
+                completed: { label: 'مرفوع', color: 'bg-blue-100 text-blue-700' },
+                approved: { label: 'معتمد', color: 'bg-purple-100 text-purple-700' },
+            };
+            const st = statusMap[r.status] || { label: r.status, color: 'bg-gray-100' };
+
+            return `
+            <div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden hover:shadow-md transition">
+                <div class="flex items-center justify-between p-4">
+                    <div class="flex items-center gap-4">
+                        <div class="w-12 h-12 bg-gradient-to-br from-amber-500 to-orange-600 rounded-xl flex items-center justify-center text-white font-bold text-lg">
+                            📋
+                        </div>
+                        <div>
+                            <h3 class="font-bold text-gray-800">كشف المساندة - ${r.date}</h3>
+                            <p class="text-xs text-gray-500">المرسل: ${r.submitted_by_name || '-'} · رُفع في: ${r.submitted_at ? new Date(r.submitted_at).toLocaleString('ar-SA') : '-'}</p>
+                        </div>
+                    </div>
+                    <div class="flex items-center gap-3">
+                        <div class="flex gap-2 text-xs">
+                            <span class="px-2 py-1 rounded-lg bg-emerald-100 text-emerald-700 font-bold">حاضر ${r.total_present || 0}</span>
+                            <span class="px-2 py-1 rounded-lg bg-red-100 text-red-700 font-bold">غائب ${r.total_absent || 0}</span>
+                            <span class="px-2 py-1 rounded-lg ${st.color} font-bold">${st.label}</span>
+                        </div>
+                        <button onclick="viewSupportReportDetail(${r.id})"
+                            class="text-sm bg-gradient-to-l from-amber-500 to-orange-600 text-white px-3 py-1.5 rounded-lg hover:from-amber-600 hover:to-orange-700 transition font-medium">
+                            عرض التفاصيل
+                        </button>
+                    </div>
+                </div>
+            </div>`;
+        }).join('');
+    } catch (err) {
+        showToast('خطأ في تحميل كشوفات المساندة');
+    }
+}
+
+window.viewSupportReportDetail = async function(reportId) {
+    try {
+        const data = await apiCall(`/api/support-attendance/reports/${reportId}/full`);
+        const content = document.getElementById('supportDetailContent');
+
+        const groupLabels = { morning: 'الصباح 🌅', afternoon: 'العصر 🌇', night: 'الليل 🌙' };
+        const statusLabels = { present: 'حاضر', absent: 'غائب', late: 'متأخر', excused: 'معذور' };
+        const statusColors = { present: 'bg-emerald-100 text-emerald-700', absent: 'bg-red-100 text-red-700', late: 'bg-yellow-100 text-yellow-700', excused: 'bg-blue-100 text-blue-700' };
+        const formatTime = (t) => t ? new Date(t + 'Z').toLocaleTimeString('ar-SA', { hour: '2-digit', minute: '2-digit' }) : '-';
+
+        const report = data.report;
+
+        let html = `
+            <div class="mb-4 p-4 bg-gradient-to-l from-amber-50 to-orange-50 rounded-xl">
+                <div class="flex items-center justify-between mb-2">
+                    <span class="font-bold text-gray-800 text-lg">كشف المساندة - ${report.date}</span>
+                    <span class="px-3 py-1 rounded-lg text-xs font-bold bg-blue-100 text-blue-700">${report.status === 'approved' ? 'معتمد' : 'مرفوع'}</span>
+                </div>
+                <p class="text-sm text-gray-500">المرسل: ${report.submitted_by_name || '-'}</p>
+            </div>
+        `;
+
+        for (const session of data.sessions) {
+            const records = session.records || [];
+            html += `
+                <div class="mb-6 bg-white rounded-xl border border-gray-100 overflow-hidden">
+                    <div class="p-3 bg-gradient-to-l from-gray-50 to-gray-100 border-b border-gray-100 flex items-center justify-between">
+                        <h4 class="font-bold text-gray-800">مجموعة ${groupLabels[session.group_type] || session.group_type}</h4>
+                        <div class="flex gap-2 text-xs">
+                            <span class="px-2 py-0.5 rounded-full bg-green-100 text-green-700">حضور: ${session.checkin_supervisor_name || '-'}</span>
+                            <span class="px-2 py-0.5 rounded-full bg-orange-100 text-orange-700">انصراف: ${session.checkout_supervisor_name || '-'}</span>
+                        </div>
+                    </div>
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-sm">
+                            <thead class="bg-gray-50 border-b border-gray-100">
+                                <tr>
+                                    <th class="px-3 py-2 text-right font-medium text-gray-500">#</th>
+                                    <th class="px-3 py-2 text-right font-medium text-gray-500">الموظف</th>
+                                    <th class="px-3 py-2 text-right font-medium text-gray-500">الحالة</th>
+                                    <th class="px-3 py-2 text-right font-medium text-gray-500">الحضور</th>
+                                    <th class="px-3 py-2 text-right font-medium text-gray-500">الانصراف</th>
+                                    <th class="px-3 py-2 text-right font-medium text-gray-500">التوقيع</th>
+                                    <th class="px-3 py-2 text-right font-medium text-gray-500">ملاحظة</th>
+                                </tr>
+                            </thead>
+                            <tbody class="divide-y divide-gray-50">
+                                ${records.map((r, i) => `
+                                    <tr class="hover:bg-gray-50/50 transition">
+                                        <td class="px-3 py-2 text-gray-400 text-xs">${i + 1}</td>
+                                        <td class="px-3 py-2 font-medium text-gray-800">${r.employee_name}</td>
+                                        <td class="px-3 py-2">
+                                            <span class="px-2 py-0.5 rounded-lg text-xs font-bold ${statusColors[r.status] || ''}">${statusLabels[r.status] || r.status}</span>
+                                        </td>
+                                        <td class="px-3 py-2 text-gray-600 text-xs">${formatTime(r.check_in_time)}</td>
+                                        <td class="px-3 py-2 text-gray-600 text-xs">${formatTime(r.check_out_time)}</td>
+                                        <td class="px-3 py-2">${r.check_in_signature ? `<img src="${r.check_in_signature}" class="h-8 rounded border border-gray-200">` : '<span class="text-gray-300 text-xs">-</span>'}</td>
+                                        <td class="px-3 py-2 text-gray-500 text-xs">${r.note || '-'}</td>
+                                    </tr>
+                                `).join('')}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            `;
+        }
+
+        content.innerHTML = html;
+        document.getElementById('supportDetailModal').classList.remove('hidden');
+    } catch (err) {
+        showToast('خطأ في تحميل تفاصيل كشف المساندة');
+    }
+};
+
+document.getElementById('supportFilterBtn').addEventListener('click', loadSupportReports);
+
 // ---- Initialize ----
 (async () => {
     await checkAuth();
@@ -1268,4 +1406,6 @@ function switchEmpProfileTab(tabKey) {
     setupMobileMenu();
     setupDeptTabs();
     setupEmpProfileTabs();
+    loadSupportReports();
 })();
+

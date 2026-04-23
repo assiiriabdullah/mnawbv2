@@ -34,6 +34,7 @@ router.post('/login', (req: Request, res: Response) => {
         role: employee.role,
         department: employee.department,
         shift: employee.shift,
+        support_group: employee.support_group || null,
     };
 
     logActivity(employee.id, employee.name, 'تسجيل دخول', 'نظام');
@@ -66,7 +67,7 @@ router.get('/me', (req: Request, res: Response) => {
         return;
     }
     // Fetch fresh data including leave balance and department
-    const employee = db.prepare('SELECT id, name, username, role, department, shift, annual_leave_balance FROM employees WHERE id = ?').get(req.session.user.id) as any;
+    const employee = db.prepare('SELECT id, name, username, role, department, shift, support_group, annual_leave_balance FROM employees WHERE id = ?').get(req.session.user.id) as any;
     if (!employee) {
         res.status(401).json({ error: 'المستخدم غير موجود' });
         return;

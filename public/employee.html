@@ -84,6 +84,14 @@
                     </svg>
                     الحضور
                 </a>
+                <a href="#" data-section="support-attendance" id="supportAttendanceNavLink"
+                    class="nav-link hidden flex items-center gap-3 px-4 py-3 rounded-xl text-gray-600 hover:bg-amber-50 hover:text-amber-700 transition font-medium">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
+                    </svg>
+                    كشف المساندة
+                </a>
                 <a href="#" data-section="profile"
                     class="nav-link flex items-center gap-3 px-4 py-3 rounded-xl text-gray-600 hover:bg-emerald-50 hover:text-emerald-700 transition font-medium">
                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -375,6 +383,226 @@
                         </div>
                         <div id="shiftLeavesEmpty" class="hidden p-8 text-center text-gray-400">لا يوجد إجازات
                             معتمدة في مناوبتك</div>
+                    </div>
+                </div>
+
+            </section>
+
+            <!-- ================================== -->
+            <!-- WINDOW: SUPPORT ATTENDANCE         -->
+            <!-- ================================== -->
+            <section id="section-support-attendance" class="content-section hidden">
+
+                <!-- Supervisor Controls -->
+                <div id="supportSupervisorSection" class="hidden">
+                    <div class="flex items-center justify-between mb-6">
+                        <h2 class="text-2xl font-bold text-gray-800 flex items-center gap-2">
+                            <svg class="w-7 h-7 text-amber-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
+                            </svg>
+                            كشف المساندة اليومي
+                        </h2>
+                        <button id="createSupportReportBtn"
+                            class="bg-gradient-to-l from-amber-500 to-orange-600 text-white px-5 py-2.5 rounded-xl hover:from-amber-600 hover:to-orange-700 transition shadow-md flex items-center gap-2 text-sm font-medium">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+                            </svg>
+                            إنشاء كشف اليوم
+                        </button>
+                    </div>
+
+                    <!-- Report Info -->
+                    <div id="supportReportInfo" class="hidden">
+                        <!-- Date + Status -->
+                        <div class="flex items-center gap-3 mb-4">
+                            <span id="supportReportDate" class="text-sm text-gray-500"></span>
+                            <span id="supportReportStatus" class="px-3 py-1 rounded-lg text-xs font-bold"></span>
+                        </div>
+
+                        <!-- 3 Group Cards -->
+                        <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+                            <!-- Morning -->
+                            <div id="groupCard-morning" class="bg-white rounded-2xl shadow-sm border-2 border-amber-100 p-4 cursor-pointer hover:shadow-md transition" onclick="selectSupportGroup('morning')">
+                                <div class="flex items-center gap-2 mb-2">
+                                    <span class="text-2xl">🌅</span>
+                                    <h3 class="font-bold text-gray-800">الصباح</h3>
+                                </div>
+                                <p class="text-xs text-gray-500 mb-2">7:00 ص - 3:00 م</p>
+                                <div class="flex gap-2">
+                                    <span id="groupCheckin-morning" class="text-xs px-2 py-0.5 rounded-full"></span>
+                                    <span id="groupCheckout-morning" class="text-xs px-2 py-0.5 rounded-full"></span>
+                                </div>
+                            </div>
+                            <!-- Afternoon -->
+                            <div id="groupCard-afternoon" class="bg-white rounded-2xl shadow-sm border-2 border-orange-100 p-4 cursor-pointer hover:shadow-md transition" onclick="selectSupportGroup('afternoon')">
+                                <div class="flex items-center gap-2 mb-2">
+                                    <span class="text-2xl">🌇</span>
+                                    <h3 class="font-bold text-gray-800">العصر</h3>
+                                </div>
+                                <p class="text-xs text-gray-500 mb-2">2:30 م - 11:30 م</p>
+                                <div class="flex gap-2">
+                                    <span id="groupCheckin-afternoon" class="text-xs px-2 py-0.5 rounded-full"></span>
+                                    <span id="groupCheckout-afternoon" class="text-xs px-2 py-0.5 rounded-full"></span>
+                                </div>
+                            </div>
+                            <!-- Night -->
+                            <div id="groupCard-night" class="bg-white rounded-2xl shadow-sm border-2 border-indigo-100 p-4 cursor-pointer hover:shadow-md transition" onclick="selectSupportGroup('night')">
+                                <div class="flex items-center gap-2 mb-2">
+                                    <span class="text-2xl">🌙</span>
+                                    <h3 class="font-bold text-gray-800">الليل</h3>
+                                </div>
+                                <p class="text-xs text-gray-500 mb-2">10:00 م - 7:00 ص</p>
+                                <div class="flex gap-2">
+                                    <span id="groupCheckin-night" class="text-xs px-2 py-0.5 rounded-full"></span>
+                                    <span id="groupCheckout-night" class="text-xs px-2 py-0.5 rounded-full"></span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Selected Group Detail -->
+                        <div id="supportGroupDetail" class="hidden bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden mb-6">
+                            <div class="p-4 bg-gradient-to-l from-amber-50 to-orange-50 border-b border-amber-100 flex items-center justify-between">
+                                <div class="flex items-center gap-3">
+                                    <span id="selectedGroupIcon" class="text-2xl"></span>
+                                    <h3 id="selectedGroupTitle" class="font-bold text-gray-800"></h3>
+                                </div>
+                                <div id="supportGroupActions" class="flex gap-2 flex-wrap"></div>
+                            </div>
+                            <!-- Stats -->
+                            <div id="supportGroupStats" class="grid grid-cols-4 gap-3 p-4 border-b border-gray-100">
+                                <div class="text-center p-2 bg-emerald-50 rounded-xl">
+                                    <div id="supStatPresent" class="text-xl font-bold text-emerald-600">0</div>
+                                    <div class="text-xs text-gray-500">حاضر</div>
+                                </div>
+                                <div class="text-center p-2 bg-red-50 rounded-xl">
+                                    <div id="supStatAbsent" class="text-xl font-bold text-red-600">0</div>
+                                    <div class="text-xs text-gray-500">غائب</div>
+                                </div>
+                                <div class="text-center p-2 bg-yellow-50 rounded-xl">
+                                    <div id="supStatLate" class="text-xl font-bold text-yellow-600">0</div>
+                                    <div class="text-xs text-gray-500">متأخر</div>
+                                </div>
+                                <div class="text-center p-2 bg-blue-50 rounded-xl">
+                                    <div id="supStatExcused" class="text-xl font-bold text-blue-600">0</div>
+                                    <div class="text-xs text-gray-500">معذور</div>
+                                </div>
+                            </div>
+                            <!-- Records table -->
+                            <div class="overflow-x-auto">
+                                <table class="w-full text-sm">
+                                    <thead class="bg-gray-50 border-b border-gray-100">
+                                        <tr>
+                                            <th class="px-4 py-3 text-right font-medium text-gray-500">#</th>
+                                            <th class="px-4 py-3 text-right font-medium text-gray-500">الموظف</th>
+                                            <th class="px-4 py-3 text-right font-medium text-gray-500">الحالة</th>
+                                            <th class="px-4 py-3 text-right font-medium text-gray-500">الحضور</th>
+                                            <th class="px-4 py-3 text-right font-medium text-gray-500">الانصراف</th>
+                                            <th class="px-4 py-3 text-right font-medium text-gray-500">التوقيع</th>
+                                            <th class="px-4 py-3 text-right font-medium text-gray-500">ملاحظة</th>
+                                            <th class="px-4 py-3 text-right font-medium text-gray-500">إجراءات</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="supportRecordsTable" class="divide-y divide-gray-50"></tbody>
+                                </table>
+                            </div>
+                        </div>
+
+                        <!-- Submit Report Button -->
+                        <div id="supportSubmitSection" class="hidden">
+                            <button id="submitSupportReportBtn"
+                                class="w-full py-3 bg-gradient-to-l from-emerald-500 to-teal-600 text-white rounded-xl hover:from-emerald-600 hover:to-teal-700 transition font-bold text-sm flex items-center justify-center gap-2 shadow-md">
+                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+                                </svg>
+                                رفع الكشف اليومي لإدارة المناوبات
+                            </button>
+                        </div>
+
+                        <!-- Submitted Message -->
+                        <div id="supportSubmittedMsg" class="hidden bg-emerald-50 rounded-2xl p-6 text-center border border-emerald-200">
+                            <svg class="w-12 h-12 mx-auto mb-3 text-emerald-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                            </svg>
+                            <p class="text-emerald-700 font-bold text-lg">تم رفع كشف المساندة لإدارة المناوبات ✅</p>
+                        </div>
+                    </div>
+
+                    <!-- No Report Yet -->
+                    <div id="supportNoReport" class="bg-white rounded-2xl shadow-sm border border-gray-100 p-8 text-center text-gray-400">
+                        <svg class="w-16 h-16 mx-auto mb-4 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
+                        </svg>
+                        <p class="text-lg font-medium text-gray-500">لم يتم إنشاء كشف المساندة لهذا اليوم</p>
+                        <p class="text-sm text-gray-400 mt-1">اضغط "إنشاء كشف اليوم" للبدء</p>
+                    </div>
+                </div>
+
+                <!-- Support Employee Self Check-in/out -->
+                <div id="supportEmployeeSection" class="hidden">
+                    <h2 class="text-xl font-bold text-gray-800 mb-4 flex items-center gap-2">
+                        <svg class="w-6 h-6 text-amber-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                        </svg>
+                        تحضير المساندة
+                        <span id="supportGroupLabel" class="text-amber-600 text-sm"></span>
+                    </h2>
+                    <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
+                        <div id="supportEmpNoSession" class="text-center text-gray-400 py-4">
+                            <svg class="w-12 h-12 mx-auto mb-3 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                            </svg>
+                            <p>لا توجد جلسة تحضير مفتوحة لمجموعتك اليوم</p>
+                        </div>
+                        <div id="supportEmpActions" class="hidden">
+                            <div class="flex items-center justify-between mb-4">
+                                <span id="supportEmpStatusBadge" class="px-3 py-1 rounded-lg text-xs font-bold"></span>
+                            </div>
+                            <!-- Signature Pad -->
+                            <div id="supportSigPadContainer" class="mb-4">
+                                <label class="block text-sm font-medium text-gray-700 mb-2">التوقيع الإلكتروني</label>
+                                <div class="border-2 border-dashed border-gray-300 rounded-xl overflow-hidden bg-white">
+                                    <canvas id="supportSigCanvas" width="400" height="150" class="w-full cursor-crosshair" style="touch-action: none;"></canvas>
+                                </div>
+                                <div class="flex gap-2 mt-2">
+                                    <button id="clearSupportSigBtn" type="button" class="text-xs text-gray-500 hover:text-red-500 transition flex items-center gap-1">
+                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                                        </svg>
+                                        مسح التوقيع
+                                    </button>
+                                    <button id="loadSupportSavedSigBtn" type="button" class="text-xs text-emerald-600 hover:text-emerald-700 transition flex items-center gap-1">
+                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" />
+                                        </svg>
+                                        استخدام التوقيع المحفوظ
+                                    </button>
+                                </div>
+                            </div>
+                            <div class="flex gap-3">
+                                <button id="supportCheckInBtn" class="flex-1 py-3 bg-gradient-to-l from-emerald-500 to-teal-600 text-white rounded-xl hover:from-emerald-600 hover:to-teal-700 transition font-bold text-sm flex items-center justify-center gap-2 shadow-md">
+                                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h7a3 3 0 013 3v1" />
+                                    </svg>
+                                    تسجيل حضور
+                                </button>
+                                <button id="supportCheckOutBtn" class="flex-1 py-3 bg-gradient-to-l from-orange-500 to-red-500 text-white rounded-xl hover:from-orange-600 hover:to-red-600 transition font-bold text-sm flex items-center justify-center gap-2 shadow-md disabled:opacity-50 disabled:cursor-not-allowed" disabled>
+                                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+                                    </svg>
+                                    تسجيل انصراف
+                                </button>
+                            </div>
+                            <div id="supportEmpDoneMsg" class="hidden mt-4 p-4 bg-emerald-50 rounded-xl text-center">
+                                <svg class="w-10 h-10 mx-auto mb-2 text-emerald-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                </svg>
+                                <p class="text-emerald-700 font-bold">تم تسجيل حضورك وانصرافك بنجاح ✅</p>
+                            </div>
+                        </div>
                     </div>
                 </div>
 

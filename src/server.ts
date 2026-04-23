@@ -10,6 +10,7 @@ import coursesRoutes from './routes/courses';
 import mandatesRoutes from './routes/mandates';
 import statsRoutes from './routes/stats';
 import attendanceRoutes from './routes/attendance';
+import supportAttendanceRoutes from './routes/support-attendance';
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -43,6 +44,7 @@ app.use('/api/courses', coursesRoutes);
 app.use('/api/mandates', mandatesRoutes);
 app.use('/api/stats', statsRoutes);
 app.use('/api/attendance', attendanceRoutes);
+app.use('/api/support-attendance', supportAttendanceRoutes);
 
 // Fallback to index.html
 app.get('/{*path}', (req, res) => {

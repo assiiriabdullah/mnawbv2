@@ -114,6 +114,14 @@
                     </svg>
                     سجلات الحضور
                 </a>
+                <a href="#" data-section="support-attendance"
+                    class="nav-link flex items-center gap-3 px-4 py-3 rounded-xl text-gray-600 hover:bg-amber-50 hover:text-amber-700 transition font-medium">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
+                    </svg>
+                    كشوفات المساندة
+                </a>
                 <hr class="my-2 border-gray-100">
                 <a href="#" data-section="activity"
                     class="nav-link flex items-center gap-3 px-4 py-3 rounded-xl text-gray-600 hover:bg-emerald-50 hover:text-emerald-700 transition font-medium">
@@ -507,6 +515,44 @@
                             </button>
                         </div>
                         <div id="attendanceDetailContent"></div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- ========== SUPPORT ATTENDANCE SECTION ========== -->
+            <section id="section-support-attendance" class="content-section hidden">
+                <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-6">
+                    <h2 class="text-2xl font-bold text-gray-800">كشوفات المساندة المرفوعة</h2>
+                    <div class="flex gap-2 flex-wrap">
+                        <input type="date" id="supportDateFrom"
+                            class="bg-white border border-gray-200 rounded-xl px-3 py-2 text-sm focus:ring-2 focus:ring-amber-500 outline-none">
+                        <input type="date" id="supportDateTo"
+                            class="bg-white border border-gray-200 rounded-xl px-3 py-2 text-sm focus:ring-2 focus:ring-amber-500 outline-none">
+                        <button id="supportFilterBtn"
+                            class="bg-gradient-to-l from-amber-500 to-orange-600 text-white px-4 py-2 rounded-xl hover:from-amber-600 hover:to-orange-700 transition text-sm font-medium">
+                            بحث
+                        </button>
+                    </div>
+                </div>
+                <div id="supportReportsList" class="space-y-4"></div>
+                <div id="supportReportsEmpty"
+                    class="hidden p-8 text-center text-gray-400 bg-white rounded-2xl shadow-sm border border-gray-100">
+                    لا توجد كشوفات مساندة مرفوعة
+                </div>
+
+                <!-- Detail Modal -->
+                <div id="supportDetailModal" class="fixed inset-0 z-50 hidden">
+                    <div class="absolute inset-0 bg-black/40 backdrop-blur-sm" onclick="closeModal('supportDetailModal')"></div>
+                    <div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-white rounded-2xl shadow-2xl w-full max-w-5xl p-6 max-h-[90vh] overflow-y-auto">
+                        <div class="flex items-center justify-between mb-4">
+                            <h3 class="text-xl font-bold text-gray-800">تفاصيل كشف المساندة</h3>
+                            <button onclick="closeModal('supportDetailModal')" class="text-gray-400 hover:text-gray-600">
+                                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                                </svg>
+                            </button>
+                        </div>
+                        <div id="supportDetailContent"></div>
                     </div>
                 </div>
             </section>
