@@ -23,6 +23,7 @@ export function initializeDatabase(): void {
       password TEXT NOT NULL,
       role TEXT NOT NULL CHECK(role IN ('general_manager', 'dept_manager', 'supervisor', 'operator')),
       department TEXT CHECK(department IN ('shifts', 'hr', 'operations', 'workforce') OR department IS NULL),
+      sub_department TEXT,
       shift TEXT CHECK(shift IN ('أ', 'ب', 'ج', 'د', 'مساندة_صباحية', 'مساندة_مسائية') OR shift IS NULL),
       join_date TEXT NOT NULL,
       annual_leave_balance INTEGER NOT NULL DEFAULT 36,
@@ -158,6 +159,36 @@ export function initializeDatabase(): void {
   } catch (e) {
     // Column already exists, ignore
   }
+
+  // Migration: Add sub_department column to employees
+  try {
+    db.exec(`ALTER TABLE employees ADD COLUMN sub_department TEXT`);
+  } catch (e) {
+    // Column already exists, ignore
+  }
+
+  // Migration: Assign default sub_department for existing employees
+  try {
+    db.prepare(`UPDATE employees SET sub_department = 'shifts_rotation' WHERE department = 'shifts' AND shift IS NOT NULL AND sub_department IS NULL AND role NOT IN ('dept_manager', 'general_manager')`).run();
+    db.prepare(`UPDATE employees SET sub_department = 'shifts_support' WHERE department = 'shifts' AND support_group IS NOT NULL AND sub_department IS NULL AND role NOT IN ('dept_manager', 'general_manager')`).run();
+    db.prepare(`UPDATE employees SET sub_department = 'ops_staff' WHERE department = 'operations' AND sub_department IS NULL AND role NOT IN ('dept_manager', 'general_manager')`).run();
+  } catch (e) {
+    // Ignore
+  }
+
+  // ========== SHIFT LEAVE SETTINGS TABLE ==========
+  db.exec(`
+    CREATE TABLE IF NOT EXISTS shift_leave_settings (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      supervisor_id INTEGER NOT NULL,
+      shift TEXT NOT NULL,
+      month TEXT NOT NULL,
+      max_leaves INTEGER NOT NULL DEFAULT 8,
+      updated_at TEXT DEFAULT (datetime('now')),
+      FOREIGN KEY (supervisor_id) REFERENCES employees(id),
+      UNIQUE(shift, month)
+    );
+  `);
 
   // ========== SUPPORT ATTENDANCE TABLES ==========
 

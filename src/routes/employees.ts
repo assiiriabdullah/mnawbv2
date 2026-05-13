@@ -24,7 +24,7 @@ router.get('/', requireManager, (req: Request, res: Response) => {
     if (isGeneralManager(req)) {
         // General manager sees all employees
         employees = db.prepare(`
-            SELECT id, name, username, role, department, shift, join_date, annual_leave_balance, created_at 
+            SELECT id, name, username, role, department, sub_department, shift, join_date, annual_leave_balance, created_at 
             FROM employees 
             ORDER BY 
                 CASE role WHEN 'general_manager' THEN 0 WHEN 'dept_manager' THEN 1 WHEN 'supervisor' THEN 2 ELSE 3 END,
@@ -33,7 +33,7 @@ router.get('/', requireManager, (req: Request, res: Response) => {
     } else {
         // Department manager sees only their department employees
         employees = db.prepare(`
-            SELECT id, name, username, role, department, shift, join_date, annual_leave_balance, created_at 
+            SELECT id, name, username, role, department, sub_department, shift, join_date, annual_leave_balance, created_at 
             FROM employees 
             WHERE department = ?
             ORDER BY 
@@ -50,7 +50,7 @@ router.get('/:id', requireManager, (req: Request, res: Response) => {
     const { id } = req.params;
 
     const employee = db.prepare(`
-        SELECT id, name, username, role, department, shift, join_date, annual_leave_balance, created_at 
+        SELECT id, name, username, role, department, sub_department, shift, join_date, annual_leave_balance, created_at 
         FROM employees WHERE id = ?
     `).get(Number(id)) as any;
 
@@ -100,7 +100,7 @@ router.get('/:id', requireManager, (req: Request, res: Response) => {
 // POST /api/employees - Add new employee (manager only)
 router.post('/', requireManager, (req: Request, res: Response) => {
     const manager = req.session.user!;
-    const { name, username, password, role, department, shift, join_date } = req.body;
+    const { name, username, password, role, department, sub_department, shift, join_date } = req.body;
 
     if (!name || !username || !password || !role || !join_date) {
         res.status(400).json({ error: 'جميع الحقول مطلوبة' });
@@ -141,9 +141,9 @@ router.post('/', requireManager, (req: Request, res: Response) => {
 
     try {
         const result = db.prepare(`
-            INSERT INTO employees (name, username, password, role, department, shift, join_date)
-            VALUES (?, ?, ?, ?, ?, ?, ?)
-        `).run(name, username, hashedPassword, role, role === 'general_manager' ? null : department, shift || null, join_date);
+            INSERT INTO employees (name, username, password, role, department, sub_department, shift, join_date)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+        `).run(name, username, hashedPassword, role, role === 'general_manager' ? null : department, sub_department || null, shift || null, join_date);
 
         const roleLabels: Record<string, string> = { dept_manager: 'مدير إدارة', supervisor: 'ضابط', operator: 'منفذ' };
         logActivity(manager.id, manager.name, 'إضافة موظف', 'موظف', name,
@@ -162,7 +162,7 @@ router.post('/', requireManager, (req: Request, res: Response) => {
 router.put('/:id', requireManager, (req: Request, res: Response) => {
     const manager = req.session.user!;
     const { id } = req.params;
-    const { name, username, role, department, shift, join_date, password } = req.body;
+    const { name, username, role, department, sub_department, shift, join_date, password } = req.body;
 
     const employee = db.prepare('SELECT * FROM employees WHERE id = ?').get(Number(id)) as any;
     if (!employee) {
@@ -193,14 +193,14 @@ router.put('/:id', requireManager, (req: Request, res: Response) => {
     if (password) {
         const hashedPassword = bcrypt.hashSync(password, 10);
         db.prepare(`
-            UPDATE employees SET name = ?, username = ?, password = ?, role = ?, department = ?, shift = ?, join_date = ?
+            UPDATE employees SET name = ?, username = ?, password = ?, role = ?, department = ?, sub_department = ?, shift = ?, join_date = ?
             WHERE id = ?
-        `).run(name, username, hashedPassword, role, role === 'general_manager' ? null : (department || null), shift || null, join_date, Number(id));
+        `).run(name, username, hashedPassword, role, role === 'general_manager' ? null : (department || null), sub_department || null, shift || null, join_date, Number(id));
     } else {
         db.prepare(`
-            UPDATE employees SET name = ?, username = ?, role = ?, department = ?, shift = ?, join_date = ?
+            UPDATE employees SET name = ?, username = ?, role = ?, department = ?, sub_department = ?, shift = ?, join_date = ?
             WHERE id = ?
-        `).run(name, username, role, role === 'general_manager' ? null : (department || null), shift || null, join_date, Number(id));
+        `).run(name, username, role, role === 'general_manager' ? null : (department || null), sub_department || null, shift || null, join_date, Number(id));
     }
 
     logActivity(manager.id, manager.name, 'تعديل بيانات موظف', 'موظف', employee.name);

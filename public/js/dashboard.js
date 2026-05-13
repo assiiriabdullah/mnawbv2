@@ -61,6 +61,36 @@ function shiftLabel(shift) {
     return shift;
 }
 
+function subDeptLabel(subDept) {
+    const labels = {
+        shifts_rotation: 'المناوبات',
+        shifts_support: 'المساندة',
+        shifts_executive: 'التنفيذي',
+        shifts_base: 'القاعدة',
+        ops_staff: 'موظفي العمليات',
+        ops_cameras: 'الكاميرات',
+    };
+    return subDept ? labels[subDept] || subDept : '—';
+}
+
+function subDeptBadge(subDept) {
+    if (!subDept) return '<span class="text-gray-300 text-xs">—</span>';
+    return `<span class="px-2 py-0.5 rounded-lg text-xs font-medium bg-teal-100 text-teal-700">${subDeptLabel(subDept)}</span>`;
+}
+
+const SUB_DEPT_OPTIONS = {
+    shifts: [
+        { value: 'shifts_rotation', label: 'المناوبات' },
+        { value: 'shifts_support', label: 'المساندة' },
+        { value: 'shifts_executive', label: 'التنفيذي' },
+        { value: 'shifts_base', label: 'القاعدة' },
+    ],
+    operations: [
+        { value: 'ops_staff', label: 'موظفي العمليات' },
+        { value: 'ops_cameras', label: 'الكاميرات' },
+    ],
+};
+
 function statusBadge(status) {
     const map = {
         pending: { label: 'قيد الانتظار', color: 'bg-yellow-100 text-yellow-700' },
@@ -491,6 +521,8 @@ function renderEmployees(list) {
 
     let filtered = list;
     if (deptFilter) filtered = filtered.filter(emp => emp.department === deptFilter);
+    const subDeptFilter = document.getElementById('employeeSubDeptFilter').value;
+    if (subDeptFilter) filtered = filtered.filter(emp => emp.sub_department === subDeptFilter);
     if (searchQuery) filtered = filtered.filter(emp => emp.name.toLowerCase().includes(searchQuery) || emp.username.toLowerCase().includes(searchQuery));
 
     const tbody = document.getElementById('employeesTable');
@@ -515,6 +547,7 @@ function renderEmployees(list) {
         <td class="px-4 py-3 text-gray-600" dir="ltr">${emp.username}</td>
         <td class="px-4 py-3">${roleBadge(emp.role)}</td>
         <td class="px-4 py-3">${deptBadge(emp.department)}</td>
+        <td class="px-4 py-3">${subDeptBadge(emp.sub_department)}</td>
         <td class="px-4 py-3 text-gray-600">${shiftLabel(emp.shift)}</td>
         <td class="px-4 py-3 text-gray-600">${emp.join_date}</td>
         <td class="px-4 py-3">
@@ -538,7 +571,7 @@ function renderEmployees(list) {
 
 // Filter listeners
 document.getElementById('employeeSearchInput').addEventListener('input', () => renderEmployees(allEmployees));
-document.getElementById('employeeDeptFilter').addEventListener('change', () => renderEmployees(allEmployees));
+// Note: employeeDeptFilter and employeeSubDeptFilter listeners are set up in the sub-dept section below
 
 // Add Employee
 document.getElementById('addEmployeeBtn').addEventListener('click', () => {
@@ -549,6 +582,7 @@ document.getElementById('addEmployeeBtn').addEventListener('click', () => {
     document.getElementById('empPasswordHint').classList.add('hidden');
     document.getElementById('employeeModal').classList.remove('hidden');
     updateShiftVisibility();
+    updateSubDeptOptions();
 });
 
 // Edit Employee
@@ -571,6 +605,11 @@ window.editEmployee = async function (id) {
         document.getElementById('empJoinDate').value = emp.join_date;
         document.getElementById('employeeModal').classList.remove('hidden');
         updateShiftVisibility();
+        updateSubDeptOptions();
+        // Set sub_department after options are populated
+        setTimeout(() => {
+            document.getElementById('empSubDepartment').value = emp.sub_department || '';
+        }, 0);
     } catch (err) {
         showToast('خطأ في تحميل بيانات الموظف');
     }
@@ -588,7 +627,44 @@ function updateShiftVisibility() {
     }
 }
 
-document.getElementById('empDepartment').addEventListener('change', updateShiftVisibility);
+function updateSubDeptOptions() {
+    const dept = document.getElementById('empDepartment').value;
+    const container = document.getElementById('subDeptFieldContainer');
+    const select = document.getElementById('empSubDepartment');
+    const options = SUB_DEPT_OPTIONS[dept];
+
+    if (options && options.length > 0) {
+        container.style.display = 'block';
+        select.innerHTML = '<option value="">اختر القسم الفرعي</option>' +
+            options.map(o => `<option value="${o.value}">${o.label}</option>`).join('');
+    } else {
+        container.style.display = 'none';
+        select.value = '';
+    }
+}
+
+function updateEmployeeDeptFilter() {
+    const dept = document.getElementById('employeeDeptFilter').value;
+    const subDeptFilter = document.getElementById('employeeSubDeptFilter');
+    const options = SUB_DEPT_OPTIONS[dept];
+
+    if (options && options.length > 0) {
+        subDeptFilter.innerHTML = '<option value="">كل الأقسام</option>' +
+            options.map(o => `<option value="${o.value}">${o.label}</option>`).join('');
+        subDeptFilter.classList.remove('hidden');
+    } else {
+        subDeptFilter.classList.add('hidden');
+        subDeptFilter.value = '';
+    }
+    renderEmployees(allEmployees);
+}
+
+document.getElementById('empDepartment').addEventListener('change', () => {
+    updateShiftVisibility();
+    updateSubDeptOptions();
+});
+document.getElementById('employeeDeptFilter').addEventListener('change', updateEmployeeDeptFilter);
+document.getElementById('employeeSubDeptFilter').addEventListener('change', () => renderEmployees(allEmployees));
 
 // Delete Employee
 window.deleteEmployee = async function (id, name) {
@@ -611,6 +687,7 @@ document.getElementById('employeeForm').addEventListener('submit', async (e) => 
         username: document.getElementById('empUsername').value,
         role: document.getElementById('empRole').value,
         department: document.getElementById('empDepartment').value,
+        sub_department: document.getElementById('empSubDepartment').value || null,
         shift: document.getElementById('empShift').value || null,
         join_date: document.getElementById('empJoinDate').value,
     };

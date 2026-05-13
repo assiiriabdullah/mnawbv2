@@ -33,6 +33,7 @@ router.post('/login', (req: Request, res: Response) => {
         username: employee.username,
         role: employee.role,
         department: employee.department,
+        sub_department: employee.sub_department || null,
         shift: employee.shift,
         support_group: employee.support_group || null,
     };
@@ -67,7 +68,7 @@ router.get('/me', (req: Request, res: Response) => {
         return;
     }
     // Fetch fresh data including leave balance and department
-    const employee = db.prepare('SELECT id, name, username, role, department, shift, support_group, annual_leave_balance FROM employees WHERE id = ?').get(req.session.user.id) as any;
+    const employee = db.prepare('SELECT id, name, username, role, department, sub_department, shift, support_group, annual_leave_balance FROM employees WHERE id = ?').get(req.session.user.id) as any;
     if (!employee) {
         res.status(401).json({ error: 'المستخدم غير موجود' });
         return;

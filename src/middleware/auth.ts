@@ -9,6 +9,7 @@ declare module 'express-session' {
             username: string;
             role: 'general_manager' | 'dept_manager' | 'supervisor' | 'operator';
             department: string | null;
+            sub_department: string | null;
             shift: string | null;
             support_group: string | null;
         };
@@ -61,4 +62,22 @@ export function canManageDepartment(req: Request, department: string | null): bo
     if (user.role === 'general_manager') return true;
     if (user.role === 'dept_manager' && user.department === department) return true;
     return false;
+}
+
+// Requires supervisor, dept_manager, or general_manager role
+export function requireSupervisorOrManager(req: Request, res: Response, next: NextFunction): void {
+    if (!req.session.user) {
+        res.status(401).json({ error: 'غير مصرح - يرجى تسجيل الدخول' });
+        return;
+    }
+    if (!['general_manager', 'dept_manager', 'supervisor'].includes(req.session.user.role)) {
+        res.status(403).json({ error: 'غير مصرح - صلاحية الضابط أو المدير فقط' });
+        return;
+    }
+    next();
+}
+
+// Helper: check if user is supervisor
+export function isSupervisor(req: Request): boolean {
+    return req.session.user?.role === 'supervisor';
 }
